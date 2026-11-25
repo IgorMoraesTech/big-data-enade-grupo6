@@ -1,13 +1,12 @@
 """Kafka → Elasticsearch, DLQ e commits manuais de offsets.
 
-O commit acontece após indexação ou confirmação de mensagem na DLQ.
-Esta implementação deve ser submetida a testes de falha reais antes de alegar
-ausência de perdas em todos os cenários.
+Falha transitória no Elasticsearch ou na DLQ interrompe o processo: o container
+reinicia e o Kafka reentrega a mensagem pendente. Não é correto continuar
+consumindo offsets futuros e depois confirmá-los enquanto um anterior falhou.
 """
 import json
 import logging
 import signal
-import time
 
 from confluent_kafka import Consumer, Producer, KafkaException
 from elasticsearch import Elasticsearch
@@ -70,22 +69,17 @@ def main():
                 doc_id = index_one(es, msg.value())
                 log.info("Indexado: %s", doc_id)
             except (ValidationError, ValueError, UnicodeDecodeError) as exc:
-                try:
-                    send_dead_letter(producer, msg.value(), str(exc))
-                    log.warning("Mensagem inválida enviada à DLQ")
-                except Exception as dlq_exc:
-                    log.error("DLQ indisponível: %s", dlq_exc)
-                    time.sleep(2)
-                    continue
-            except Exception as exc:
-                # Não confirmar offsets se ES não respondeu com sucesso.
-                log.error("Falha indexando; tentará novamente: %s", exc)
-                time.sleep(2)
-                continue
+                # Se a DLQ falhar, o processo reinicia SEM commitar a mensagem.
+                send_dead_letter(producer, msg.value(), str(exc))
+                log.warning("Mensagem inválida enviada à DLQ")
+            # Outras exceções propagam; em especial falha de Elasticsearch NÃO
+            # deve permitir avançar para a próxima mensagem. Reprocessar é seguro
+            # porque o ID do documento Elasticsearch é estável.
             try:
                 consumer.commit(message=msg, asynchronous=False)
-            except KafkaException as exc:
-                log.error("Falha commit (idempotência permite reprocessar): %s", exc)
+            except KafkaException:
+                log.exception("Falha no commit; reiniciar para reprocessar")
+                raise
     finally:
         consumer.close()
         producer.flush(10)
