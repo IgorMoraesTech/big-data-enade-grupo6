@@ -1,4 +1,4 @@
-"""Cria o índice e o mapping explícito antes de indexar dados."""
+"""Cria o índice com mapping explícito e analisador PT-BR antes da ingestão."""
 from elasticsearch import Elasticsearch
 from app import config
 
@@ -12,12 +12,14 @@ MAPPING = {
                     "type": "synonym_graph",
                     "synonyms": ["ética, moral", "sustentabilidade, desenvolvimento sustentável"],
                 },
+                "enade_stop": {"type": "stop", "stopwords": "_brazilian_"},
+                "enade_stem": {"type": "stemmer", "language": "brazilian"},
             },
             "analyzer": {
                 "enade_pt": {
                     "tokenizer": "standard",
-                    "filter": ["lowercase", "asciifolding", "enade_synonyms",
-                               "brazilian_stop", "brazilian_stem"],
+                    "filter": ["lowercase", "asciifolding", "enade_stop",
+                               "enade_stem", "enade_synonyms"],
                 },
             },
         },
@@ -47,7 +49,7 @@ MAPPING = {
 
 
 def main():
-    es = Elasticsearch(config.ELASTICSEARCH_URL)
+    es = Elasticsearch(config.ELASTICSEARCH_URL, request_timeout=15)
     if not es.indices.exists(index=config.ELASTICSEARCH_INDEX):
         es.indices.create(index=config.ELASTICSEARCH_INDEX, body=MAPPING)
         print("Índice criado:", config.ELASTICSEARCH_INDEX)

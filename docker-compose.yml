@@ -1,5 +1,5 @@
-# Ambiente LOCAL DE LABORATÓRIO. Não possui Kerberos/LDAP configurados.
-# Não expor esta configuração publicamente em produção.
+# Ambiente LOCAL DE LABORATÓRIO; sem autenticação LDAP/Kerberos.
+# NUNCA expor este Compose em ambiente público.
 services:
   kafka:
     image: apache/kafka:3.9.1
@@ -53,6 +53,15 @@ services:
       timeout: 5s
       retries: 10
 
+  init-index:
+    build: .
+    env_file: .env
+    command: ["python", "-m", "scripts.create_index"]
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: "no"
+
   api:
     build: .
     env_file: .env
@@ -60,8 +69,8 @@ services:
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
-      elasticsearch:
-        condition: service_healthy
+      init-index:
+        condition: service_completed_successfully
       redis:
         condition: service_healthy
     restart: unless-stopped
@@ -73,8 +82,8 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
-      elasticsearch:
-        condition: service_healthy
+      init-index:
+        condition: service_completed_successfully
     restart: unless-stopped
 
 volumes:

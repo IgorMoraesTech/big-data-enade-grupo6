@@ -1,26 +1,30 @@
 # Big Data — Buscador de Questões ENADE (Grupo 6)
 
-Projeto acadêmico de processamento e pesquisa de questões do ENADE. **Em desenvolvimento.**
+Projeto acadêmico de processamento e pesquisa de questões do ENADE. **Protótipo em desenvolvimento — não é a entrega final.**
 
-## Arquitetura e tecnologias
+## Fluxo
 
-PDFs → Python (extração) → Kafka → Elasticsearch → FastAPI + Redis → Web.
+PDF oficial → Python → JSON → Kafka → Elasticsearch → API FastAPI/Redis → Interface web.
 
-O TP2 também exige LDAP e Kerberos: **ainda não implementados nesta base**.
-O Compose existente é um *laboratório local inseguro*, não adequado à produção.
+O enunciado também exige LDAP e Kerberos: **ainda não estão implementados**.
+A configuração local usa Kafka PLAINTEXT e Elasticsearch sem segurança, portanto
+**não deve ser exposta à internet**.
 
-- [Arquitetura, decisões e limitações](docs/ARCHITECTURE.md)
-- [Contrato de dados e API](docs/SCHEMA.md)
-- [Colaboração em equipe](docs/TEAM.md)
-- [Issues e tarefas](https://github.com/IgorMoraesTech/big-data-enade-grupo6/issues)
+Documentos:
+- [Arquitetura e limitações](docs/ARCHITECTURE.md)
+- [Contrato de dados](docs/SCHEMA.md)
+- [Guia para colaborar](docs/TEAM.md)
+- [Passos de validação](docs/VALIDATION.md)
+- [Estrutura do relatório](docs/REPORT_OUTLINE.md)
+- [Issues](https://github.com/IgorMoraesTech/big-data-enade-grupo6/issues)
 
-## Requisitos locais
+## Pré-requisitos
 
-- Docker Engine/Compose v2 com memória disponível para Kafka e Elasticsearch.
-- Python 3.12+ para rodar scripts e testes no host (opcional).
-- PDFs reais obtidos de fontes oficiais do INEP para avaliação do requisito RF01.
+Docker Engine + Compose v2, aproximadamente 4–6 GB de RAM livres para o
+laboratório, e acesso à internet para obter imagens Docker e bibliotecas.
+Para desenvolver fora do Docker: Python 3.12+.
 
-## Iniciar
+## Iniciar a aplicação
 
 ```bash
 cp .env.example .env
@@ -30,31 +34,49 @@ curl http://localhost:8000/health
 curl http://localhost:8000/ready
 ```
 
-No Windows PowerShell: `Copy-Item .env.example .env`.
+Windows PowerShell: `Copy-Item .env.example .env`.
+O serviço `init-index` prepara mapping e analisador do Elasticsearch.
+Aguarde a conclusão e confira seus logs: `docker compose logs init-index`.
 
-A interface estará em `http://localhost:8000`; Swagger em `http://localhost:8000/docs`.
-Para ver logs: `docker compose logs -f indexer`.
+- Web: http://localhost:8000
+- Swagger: http://localhost:8000/docs
+- Ver logs: `docker compose logs -f indexer`
 
-## Demonstração inicial
+## Exemplo fictício (teste do pipeline, NÃO é questão real do INEP)
 
 ```bash
-# Publicar um JSON de exemplo indicado como dado fictício
 docker compose run --rm api python -m scripts.produce sample/example_question.json
-# Consultar busca
+docker compose logs --tail=50 indexer
+curl "http://localhost:8000/api/questions?q=etica"
 curl "http://localhost:8000/api/questions?q=etica"
 ```
 
-O exemplo fictício demonstra integração, **não comprova** extração do acervo.
-Para extração real consultar `scripts/extract_pdf.py` e validar os resultados
-antes de enviá-los ao Kafka.
+A primeira busca tende a mostrar `cache_hit:false` e a seguinte,
+`cache_hit:true` se o Redis estiver disponível e o TTL não tiver expirado.
 
-## Testes locais
+## Extração de prova real (etapa exploratória)
+
+Coloque o PDF localmente e rode (no host, com dependências instaladas):
+
+```bash
+python -m scripts.extract_pdf --pdf prova.pdf --year 2023 --course "Sistemas de Informação" --area "Tecnologia" --section CE --source-url "URL_OFICIAL_DO_PDF" --output data/output/questoes.jsonl
+```
+
+O extrator é heurístico, depende da diagramação e **não resolve** OCR,
+gabaritos ou fórmulas complexas. Revise manualmente todos os registros antes
+de publicar com `python -m scripts.produce data/output/questoes.jsonl`.
+
+## Testes unitários
 
 ```bash
 python -m pip install -r requirements.txt
 python -m pytest -q
 ```
 
-**Status dos requisitos:** verificar issues e `docs/ARCHITECTURE.md`.
-Não relatar como concluídas autenticação, cobertura integral do acervo,
-extração multimodal ou desempenho sem evidência de execução e medições.
+## Estado e escopo
+
+Este código ainda precisa de validação Docker ponta a ponta e das evidências
+exigidas na avaliação. Não afirmar que RF01 (acervo integral), RF04
+(conversão de mídias), RF22–RF25 (LDAP/Kerberos/perfis) ou as metas
+não funcionais foram cumpridas por esta base. Relatório e vídeo devem
+mostrar somente comportamento observado, incluindo limitações.
