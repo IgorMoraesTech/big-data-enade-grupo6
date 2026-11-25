@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Acervo ENADE | Grupo 6</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,sans-serif;color:#14263a;background:#f2f5fa}
+    *{box-sizing:border-box}body{margin:0}header{background:#14263a;color:white;padding:1.25rem max(1rem,calc((100% - 1050px)/2))}
+    .wrap{max-width:1050px;margin:2rem auto;padding:0 1rem}
+    h1{font-size:1.5rem;margin:.3rem 0}h2{font-size:1.1rem}p{line-height:1.6}
+    .muted{color:#576579}.note{background:#fff3d5;border-left:4px solid #b17e16;padding:.9rem;border-radius:6px}
+    .layout{display:grid;grid-template-columns:220px 1fr;gap:1rem}aside,main{background:white;border-radius:12px;padding:1.2rem;box-shadow:0 3px 16px #14263a10}
+    label{display:block;font-size:.87rem;font-weight:600;margin:0 0 .4rem}
+    input,select,button{font:inherit}input,select{width:100%;padding:.72rem;border:1px solid #c2cedb;border-radius:6px;margin-bottom:1rem}
+    button{background:#1265a7;color:white;border:0;border-radius:6px;padding:.7rem 1rem;cursor:pointer}
+    button:disabled{opacity:.45;cursor:not-allowed}.searchbar{display:flex;gap:.7rem}.searchbar input{margin:0}
+    .question{padding:1.1rem 0;border-bottom:1px solid #e3e9ef}.question h3{margin:.3rem 0;font-size:1.05rem}
+    .tag{font-size:.74rem;background:#e7f2fb;border-radius:10px;padding:.2rem .5rem;margin-right:.35rem}
+    .pager{display:flex;align-items:center;justify-content:space-between;margin-top:1rem}
+    mark{background:#ffe5a0}a{color:#1265a7;word-break:break-word}
+    @media(max-width:700px){.layout{grid-template-columns:1fr}.searchbar{display:block}.searchbar button{margin-top:.5rem;width:100%}}
+  </style>
+</head>
+<body>
+<header>
+  <small>UNI<span aria-hidden="true">·</span>CATÓLICA — BIG DATA — GRUPO 6</small>
+  <h1>Buscador de questões ENADE</h1>
+  <span>Pesquisa por texto, ano, curso e área</span>
+</header>
+<div class="wrap">
+  <p class="note"><strong>Protótipo acadêmico.</strong> Integração LDAP/Kerberos e perfis ainda pendentes. O exemplo de demonstração é fictício e não representa uma questão real do INEP. Gabaritos não são disponibilizados nesta interface.</p>
+  <div class="layout">
+    <aside>
+      <h2>Filtros</h2>
+      <label for="year">Ano</label><input id="year" type="number" min="2004" max="2100" placeholder="Todos">
+      <label for="course">Curso</label><input id="course" placeholder="Nome exato do curso">
+      <label for="area">Área</label><input id="area" placeholder="Nome exato da área">
+      <label for="section">Componente</label>
+      <select id="section"><option value="">Todos</option><option value="FG">Formação geral</option><option value="CE">Específico</option></select>
+      <label for="questionType">Tipo</label>
+      <select id="questionType"><option value="">Todos</option><option value="objective">Objetiva</option><option value="discursive">Discursiva</option></select>
+      <label for="competency">Competência</label><input id="competency" placeholder="Competência exata">
+      <button id="clear" type="button">Limpar filtros</button>
+    </aside>
+    <main>
+      <form id="form" class="searchbar">
+        <input id="query" aria-label="Pesquisar" placeholder="Digite um assunto, por exemplo: ética">
+        <button type="submit">Buscar</button>
+      </form>
+      <p class="muted" id="status" aria-live="polite">Pesquise no acervo para ver as questões.</p>
+      <div id="results"></div>
+      <div class="pager">
+        <button id="prev" type="button" disabled>Anterior</button>
+        <span id="paging"></span>
+        <button id="next" type="button" disabled>Próxima</button>
+      </div>
+    </main>
+  </div>
+</div>
+<script>
+  const fields = ["year","course","area","section","questionType","competency"];
+  const $ = id => document.getElementById(id);
+  let page=1, pages=1;
+  const esc = value => String(value ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  // Destaques de busca são gerados por Elasticsearch e sanitizados aqui;
+  // as tags <mark> são reintroduzidas somente após escape.
+  function highlighted(value,fragments){
+    if (!fragments || !fragments.length) return esc(value);
+    return esc(fragments[0]).replaceAll("&lt;mark&gt;","<mark>").replaceAll("&lt;/mark&gt;","</mark>");
+  }
+  function render(item){
+    const source = item.source_pdf && /^https:\/\//.test(item.source_pdf)
+      ? '<a href="'+esc(item.source_pdf)+'" target="_blank" rel="noopener noreferrer">PDF original</a>'
+      : '<span class="muted">Fonte demonstrativa / não vinculada</span>';
+    const alternatives = Object.entries(item.alternatives||{}).map(([k,v])=>'<li><strong>'+esc(k)+'</strong> — '+esc(v)+'</li>').join("");
+    return '<article class="question"><span class="tag">'+esc(item.year)+'</span><span class="tag">'+esc(item.section)+'</span><span class="tag">'+esc(item.course)+'</span>'
+      +'<h3>Questão '+esc(item.number)+' — '+esc(item.question_type)+'</h3>'
+      +'<p>'+highlighted(item.statement,item.highlights?.statement)+'</p>'
+      +(alternatives ? '<ol style="list-style:none;padding:0">'+alternatives+'</ol>':'')
+      +'<small>'+source+' · Página(s): '+esc((item.source_pages||[]).join(", "))+'</small></article>';
+  }
+  async function search(){
+    $("status").textContent="Buscando...";
+    $("results").innerHTML="";
+    const p = new URLSearchParams({page:String(page),page_size:"10"});
+    if ($("query").value.trim()) p.set("q",$("query").value.trim());
+    for (const field of fields) {
+      const value = $(field).value.trim();
+      if (value) p.set(field==="questionType"?"question_type":field,value);
+    }
+    try {
+      const response=await fetch("/api/questions?"+p);
+      if (!response.ok) throw new Error("HTTP "+response.status);
+      const data=await response.json();
+      pages=Math.max(1,Math.ceil(data.total/data.page_size));
+      $("results").innerHTML=(data.items||[]).map(render).join("");
+      $("status").textContent=data.total+" questão(ões) encontrada(s). "+(data.cache_hit?"Resposta do cache Redis.":"Consulta sem cache.");
+      $("paging").textContent="Página "+page+" de "+pages;
+      $("prev").disabled=page<=1;
+      $("next").disabled=page>=pages;
+    } catch(err) {
+      $("status").textContent="Não foi possível pesquisar. Verifique se API e Elasticsearch estão disponíveis. ("+err.message+")";
+      $("prev").disabled=$("next").disabled=true;
+    }
+  }
+  $("form").addEventListener("submit",e=>{e.preventDefault();page=1;search()});
+  $("prev").addEventListener("click",()=>{if(page>1){page--;search()}});
+  $("next").addEventListener("click",()=>{if(page<pages){page++;search()}});
+  $("clear").addEventListener("click",()=>{for(const f of fields)$(f).value="";page=1;search()});
+  search();
+</script>
+</body></html>
