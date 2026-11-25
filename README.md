@@ -1,1 +1,82 @@
-# big-data-enade-grupo6
+# Big Data — Buscador de Questões ENADE (Grupo 6)
+
+Projeto acadêmico de processamento e pesquisa de questões do ENADE. **Protótipo em desenvolvimento — não é a entrega final.**
+
+## Fluxo
+
+PDF oficial → Python → JSON → Kafka → Elasticsearch → API FastAPI/Redis → Interface web.
+
+O enunciado também exige LDAP e Kerberos: **ainda não estão implementados**.
+A configuração local usa Kafka PLAINTEXT e Elasticsearch sem segurança, portanto
+**não deve ser exposta à internet**.
+
+Documentos:
+- [Arquitetura e limitações](docs/ARCHITECTURE.md)
+- [Contrato de dados](docs/SCHEMA.md)
+- [Guia para colaborar](docs/TEAM.md)
+- [Passos de validação](docs/VALIDATION.md)
+- [Estrutura do relatório](docs/REPORT_OUTLINE.md)
+- [Issues](https://github.com/IgorMoraesTech/big-data-enade-grupo6/issues)
+
+## Pré-requisitos
+
+Docker Engine + Compose v2, aproximadamente 4–6 GB de RAM livres para o
+laboratório, e acesso à internet para obter imagens Docker e bibliotecas.
+Para desenvolver fora do Docker: Python 3.12+.
+
+## Iniciar a aplicação
+
+```bash
+cp .env.example .env
+docker compose up --build -d
+docker compose ps
+curl http://localhost:8000/health
+curl http://localhost:8000/ready
+```
+
+Windows PowerShell: `Copy-Item .env.example .env`.
+O serviço `init-index` prepara mapping e analisador do Elasticsearch.
+Aguarde a conclusão e confira seus logs: `docker compose logs init-index`.
+
+- Web: http://localhost:8000
+- Swagger: http://localhost:8000/docs
+- Ver logs: `docker compose logs -f indexer`
+
+## Exemplo fictício (teste do pipeline, NÃO é questão real do INEP)
+
+```bash
+docker compose run --rm api python -m scripts.produce sample/example_question.json
+docker compose logs --tail=50 indexer
+curl "http://localhost:8000/api/questions?q=etica"
+curl "http://localhost:8000/api/questions?q=etica"
+```
+
+A primeira busca tende a mostrar `cache_hit:false` e a seguinte,
+`cache_hit:true` se o Redis estiver disponível e o TTL não tiver expirado.
+
+## Extração de prova real (etapa exploratória)
+
+Coloque o PDF localmente e rode (no host, com dependências instaladas):
+
+```bash
+python -m scripts.extract_pdf --pdf prova.pdf --year 2023 --course "Sistemas de Informação" --area "Tecnologia" --section CE --source-url "URL_OFICIAL_DO_PDF" --output data/output/questoes.jsonl
+```
+
+O extrator é heurístico, depende da diagramação e **não resolve** OCR,
+gabaritos ou fórmulas complexas. Revise manualmente todos os registros antes
+de publicar com `python -m scripts.produce data/output/questoes.jsonl`.
+
+## Testes unitários
+
+```bash
+python -m pip install -r requirements.txt
+python -m pytest -q
+```
+
+## Estado e escopo
+
+Este código ainda precisa de validação Docker ponta a ponta e das evidências
+exigidas na avaliação. Não afirmar que RF01 (acervo integral), RF04
+(conversão de mídias), RF22–RF25 (LDAP/Kerberos/perfis) ou as metas
+não funcionais foram cumpridas por esta base. Relatório e vídeo devem
+mostrar somente comportamento observado, incluindo limitações.
