@@ -55,9 +55,14 @@ def list_questions(
 ):
     body = search_body(q, year, course, area, section, question_type, competency, page, page_size)
     key = cache_key(body)
-    # Redis em falha não impede a busca; ES em falha retorna 503.
+    # Uma nova indexação incrementa a versão global do acervo. A versão
+    # faz parte da chave, invalidando imediatamente os caches anteriores.
+    # Redis indisponível não impede a consulta direta ao Elasticsearch.
     try:
-        cached = get_redis().get(key)
+        redis = get_redis()
+        version = redis.get("enade:index:version") or "0"
+        key = key + ":v" + version
+        cached = redis.get(key)
         if cached:
             return {**json.loads(cached), "cache_hit": True}
     except RedisError as exc:
