@@ -28,6 +28,32 @@ O exemplo é **fictício** e apenas valida integração.
 - Inspecionar offsets e lag de consumidor Kafka.
 - Registrar comandos, timestamps, prints e saídas observadas.
 
+### Verificação automatizada disponível
+
+O workflow `.github/workflows/docker-e2e.yml` executa, em runner descartável:
+
+- Kafka + Elasticsearch + Redis + API + LDAP reais no Docker Compose
+- Reenvio da mesma questão fictícia para verificar contagem inalterada (idempotência)
+- Parada do indexador, envio de novo evento e recuperação após reinício
+- Payload inválido enviado à DLQ e continuidade de consumo
+- Benchmark de **30 buscas sequenciais** com cache e sem reutilizar a mesma chave
+
+Evidências JSON são anexadas à execução GitHub Actions como artefato
+`docker-integration-evidence` quando o job termina com sucesso. **Esses números
+são medições do ambiente efêmero do GitHub Actions e de uma questão fictícia,
+não resultados de escala com acervo ENADE real.** Não confundir req/s HTTP
+com docs/s de indexação Kafka e não extrapolar esses resultados para produção.
+
+Para executar o mesmo fluxo localmente, depois de subir o Compose e executar
+`python scripts/smoke_e2e.py`, use:
+
+```bash
+python scripts/smoke_ldap.py
+python scripts/smoke_recovery.py
+python scripts/benchmark_search.py --query tecnologia --requests 30 --output evidence/benchmark-search.json
+python scripts/benchmark_search.py --query tecnologia --requests 30 --cache-bust --output evidence/benchmark-no-cache.json
+```
+
 ## Passo 4 — acervo oficial
 - Obter PDFs oficiais e construir manifesto.
 - Rodar extrator em cada PDF com referência à URL oficial.
