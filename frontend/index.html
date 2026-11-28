@@ -34,19 +34,76 @@
     .secondary{background:#4a627c}
     .role-panel button{margin-right:.4rem;margin-bottom:.35rem}
     mark{background:#ffe5a0}a{color:#1265a7;word-break:break-word}
-    @media(max-width:700px){.layout{grid-template-columns:1fr}.searchbar{display:block}.searchbar button{margin-top:.5rem;width:100%}}
+    .site-header{padding:0 max(1rem,calc((100% - 1050px)/2));box-shadow:0 4px 20px #14263a20}
+    .header-inner{display:flex;align-items:center;justify-content:space-between;gap:1rem;min-height:88px}
+    .brand-kicker{display:block;font-size:.68rem;font-weight:700;letter-spacing:.12em;color:#a9c8e5;text-transform:uppercase}
+    .brand-title{font-size:1.2rem;font-weight:800;line-height:1.2;margin:.35rem 0}
+    .header-actions{display:flex;gap:.55rem;align-items:center}
+    .account-tag{display:inline-flex;align-items:center;gap:.4rem;font-size:.84rem;color:#d9edff;background:#ffffff18;border:1px solid #ffffff33;border-radius:999px;padding:.53rem .75rem}
+    .header-login{background:#fff;color:#153754;border-radius:999px;font-weight:700;white-space:nowrap}
+    .header-login:hover{background:#e9f3fd}
+    .hero{padding:1.55rem 0 1rem;display:flex;justify-content:space-between;align-items:end;gap:1rem}
+    .hero-kicker{text-transform:uppercase;font-size:.72rem;letter-spacing:.13em;font-weight:800;color:#266ca8}
+    .hero h1{margin:.35rem 0;font-size:clamp(1.55rem,3vw,2.1rem);letter-spacing:-.035em}
+    .hero p{color:#51657b;margin:.25rem 0 0;font-size:.95rem}
+    .wrap{margin:0 auto 2rem}
+    .note{background:#fff9e8;font-size:.83rem;color:#695126;border-left-color:#d9a747;line-height:1.4;margin:0 0 1rem}
+    .note p{margin:0}
+    .layout{grid-template-columns:230px minmax(0,1fr)}
+    aside,main{box-shadow:0 5px 24px #14263a0c;border:1px solid #e1e8f0}
+    aside h2{margin-top:.1rem}
+    main{min-width:0}
+    .searchbar input{flex:1;min-width:0}
+    .searchbar button{font-weight:700}
+    input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid #7bb9f4;outline-offset:2px}
+    .auth-panel{position:relative;max-width:1050px;margin:0 auto 1rem;box-shadow:0 10px 28px #14263a20}
+    .auth-panel-header{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.8rem}
+    .auth-panel-header h2{margin:0}
+    .auth-close{background:#e9f0f7;color:#243e59;border:1px solid #d6e2ed;padding:.46rem .7rem;font-size:.88rem}
+    .auth-message{margin:.55rem 0}
+    .auth-panel small{display:block;margin-top:.35rem}
+    .auth-panel .role-panel{margin-top:.7rem}
+    .auth-panel button{white-space:normal}
+    .auth-panel .auth-layout{gap:.7rem}
+    .auth-field label{margin-bottom:.3rem}
+    @media(max-width:700px){
+      .layout{grid-template-columns:1fr}.searchbar{display:flex}.searchbar button{margin-top:0;width:auto}
+      .header-inner{min-height:78px}.brand-title{font-size:1.06rem}
+      .brand-kicker{font-size:.58rem}.account-tag{font-size:.75rem;padding:.4rem .55rem}
+      .header-login{padding:.63rem .8rem}
+      .hero{padding:1.15rem 0 .85rem}
+      .auth-layout{display:block}.auth-field input{margin-bottom:.7rem}
+    }
+    @media(max-width:420px){.account-tag{display:none}.hero h1{font-size:1.5rem}}
+
   </style>
 </head>
 <body>
-<header>
-  <small>UNI<span aria-hidden="true">·</span>CATÓLICA — BIG DATA — GRUPO 6</small>
-  <h1>Buscador de questões ENADE</h1>
-  <span>Pesquisa por texto, ano, curso e área</span>
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <span class="brand-kicker">Unicatólica · Big Data · Grupo 6</span>
+      <div class="brand-title">Acervo ENADE</div>
+    </div>
+    <div class="header-actions">
+      <span class="account-tag" id="headerUser" hidden></span>
+      <button class="header-login" id="openAuth" type="button" aria-controls="authPanel" aria-expanded="false">Entrar</button>
+    </div>
+  </div>
 </header>
 <div class="wrap">
-  <p class="note"><strong>Protótipo acadêmico.</strong> Login LDAP de laboratório e controle de acesso por perfil disponíveis no backend. Kerberos ainda não implementado. Use somente no ambiente privado do Codespaces. A questão de teste inicial é fictícia; gabaritos não são mostrados na busca pública.</p>
-  <section class="auth-panel" aria-label="Autenticação LDAP">
-    <h2>Entrar no sistema <span class="muted" style="font-size:.75rem;font-weight:400">(ambiente de demonstração)</span></h2>
+  <section class="hero" aria-label="Pesquisar questões">
+    <div>
+      <span class="hero-kicker">Biblioteca de questões</span>
+      <h1>Encontre questões do ENADE</h1>
+      <p>Pesquise por assunto, curso, ano ou área do conhecimento. Sem precisar entrar.</p>
+    </div>
+  </section>
+  <section class="auth-panel" id="authPanel" aria-label="Autenticação LDAP" hidden>
+    <div class="auth-panel-header">
+      <h2>Minha conta <span class="muted" style="font-size:.75rem;font-weight:400">(laboratório LDAP)</span></h2>
+      <button type="button" id="closeAuth" class="auth-close" aria-label="Fechar painel de conta">Fechar ✕</button>
+    </div>
     <form id="loginForm" class="auth-layout">
       <div class="auth-field"><label for="loginUser">Usuário</label><input id="loginUser" autocomplete="username" maxlength="48" required placeholder="estudante ou professor"></div>
       <div class="auth-field"><label for="loginPass">Senha</label><input id="loginPass" type="password" autocomplete="current-password" maxlength="256" required placeholder="Senha de demonstração"></div>
@@ -64,6 +121,7 @@
     <p class="auth-message muted" id="authMessage" role="status" aria-live="polite">A busca pública funciona sem login.</p>
     <small class="muted">Contas de laboratório: estudante / demo123 e professor / demo123. Não utilize senhas pessoais.</small>
   </section>
+  <p class="note"><strong>Protótipo acadêmico.</strong> Login LDAP de demonstração; Kerberos ainda não implementado. Use o Codespaces privado. A questão de teste inicial é fictícia; os gabaritos não aparecem na busca pública.</p>
   <div class="layout">
     <aside>
       <h2>Filtros</h2>
@@ -78,7 +136,7 @@
       <button id="clear" type="button">Limpar filtros</button>
     </aside>
     <main>
-      <form id="form" class="searchbar">
+      <form id="form" class="searchbar" role="search">
         <input id="query" aria-label="Pesquisar" placeholder="Digite um assunto, por exemplo: ética">
         <button type="submit">Buscar</button>
       </form>
@@ -188,16 +246,36 @@
   $("exportJson").addEventListener("click",()=>window.location.assign("/api/cart/export.json"));
   // A autorização é imposta pela API, nunca apenas pela visibilidade dos controles.
   // O navegador não armazena senhas ou tokens em localStorage/sessionStorage.
+  function toggleAuth(open){
+    $("authPanel").hidden=!open;
+    $("openAuth").setAttribute("aria-expanded",String(open));
+    if(open){
+      if(!$("loginForm").hidden) $("loginUser").focus();
+      else $("checkRole").focus();
+    }else{
+      $("openAuth").focus();
+    }
+  }
+  $("openAuth").addEventListener("click",()=>toggleAuth($("authPanel").hidden));
+  $("closeAuth").addEventListener("click",()=>toggleAuth(false));
+  document.addEventListener("keydown",event=>{
+    if(event.key==="Escape" && !$("authPanel").hidden) toggleAuth(false);
+  });
   function showAuth(user){
     const logged=!!user;
     $("loginForm").hidden=logged;
     $("authLogged").hidden=!logged;
+    $("headerUser").hidden=!logged;
+    $("openAuth").textContent=logged?"Minha conta":"Entrar";
     $("roleResult").textContent="";
     if(logged){
-      $("authIdentity").textContent=user.username+" — "+(user.role==="professor"?"Professor":"Estudante");
+      const role=user.role==="professor"?"Professor":"Estudante";
+      $("authIdentity").textContent=user.username+" — "+role;
+      $("headerUser").textContent=role;
       $("authMessage").textContent="Autenticado no OpenLDAP de demonstração.";
       $("authMessage").className="auth-message success";
     }else{
+      $("headerUser").textContent="";
       $("loginPass").value="";
       $("authMessage").textContent="A busca pública funciona sem login.";
       $("authMessage").className="auth-message muted";
@@ -248,6 +326,7 @@
       if(!response.ok)throw Error("HTTP "+response.status);
       showAuth(null);
       $("authMessage").textContent="Sessão encerrada. Você pode continuar pesquisando sem login.";
+      toggleAuth(false);
     }catch(err){
       $("authMessage").textContent="Falha ao sair: "+err.message;
       $("authMessage").className="auth-message error";
