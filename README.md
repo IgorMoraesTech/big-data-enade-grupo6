@@ -74,7 +74,7 @@ Essas credenciais são **somente demonstrativas** e não devem ser reutilizadas:
 - Estudante: `estudante` / `demo123`
 - Professor: `professor` / `demo123`
 
-**Login pela interface web:** abra `http://localhost:8000`. No painel "Entrar no sistema" informe as credenciais de demonstração. O perfil autenticado aparece no topo e o botão **Testar acesso a estatísticas do professor** chama a rota real `GET /api/professor/stats/courses`:
+**Login pela interface web:** abra `http://localhost:8000`. A tela inicial é a **busca pública**, sem exigir conta. Para autenticar, clique em **Entrar** no canto superior direito e informe as credenciais de demonstração. O formulário só aparece quando o botão é acionado. Após o login, o cabeçalho identifica o perfil e o botão vira **Minha conta**. Nesse painel há **Sair da conta** e o botão **Testar acesso a estatísticas do professor**, que chama a rota real `GET /api/professor/stats/courses`:
 - com estudante, o backend retorna **HTTP 403**, mostrado na tela;
 - com professor, retorna **HTTP 200** e a contagem de questões por curso;
 - sem login, a rota protegida retorna **HTTP 401**.

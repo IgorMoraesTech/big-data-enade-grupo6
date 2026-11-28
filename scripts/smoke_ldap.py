@@ -22,6 +22,12 @@ def main():
     with httpx.Client(timeout=15) as client:
         front = client.get(BASE + "/")
         assert front.status_code == 200
+        assert 'id="openAuth"' in front.text, "Botão Entrar ausente no cabeçalho"
+        assert 'id="headerUser"' in front.text, "Identificação do perfil ausente"
+        assert 'id="authPanel"' in front.text, "Painel de conta ausente"
+        assert 'id="authPanel" aria-label="Autenticação LDAP" hidden' in front.text, "Login deve iniciar recolhido"
+        assert 'aria-controls="authPanel" aria-expanded="false"' in front.text
+        assert 'role="search"' in front.text, "Busca pública ausente"
         assert 'id="loginForm"' in front.text, "Formulário LDAP visual ausente"
         assert 'id="checkRole"' in front.text, "Demonstração HTTP 403 ausente"
         assert 'id="logout"' in front.text, "Logout visual ausente"
