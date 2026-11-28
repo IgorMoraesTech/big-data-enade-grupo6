@@ -2,7 +2,6 @@
 import json
 import logging
 
-from elasticsearch import ElasticsearchException
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
 from redis.exceptions import RedisError
