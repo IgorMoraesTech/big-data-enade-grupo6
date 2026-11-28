@@ -10,9 +10,27 @@
 - Seleção sistemática e não aleatória de 25 números por curso, espalhada ao longo da prova; não extrapolar resultados para outras edições/cursos.
 - **Páginas físicas não foram preenchidas** porque exigem verificação nos PDFs originais.
 
+## Pré-processamento automático das fontes oficiais
+
+O comando abaixo baixa diretamente do INEP as provas de Enfermagem e Fisioterapia 2023, confere a assinatura `%PDF-`, abre os PDFs com PyMuPDF e registra tamanho, número de páginas e hash SHA-256. Os arquivos são armazenados em `data/raw/` e permanecem fora do Git.
+
+```bash
+python -m scripts.prepare_50_sources --download
+```
+
+Para analisar PDFs oficiais **já baixados**, sem fazer novo download:
+
+```bash
+python -m scripts.prepare_50_sources
+```
+
+O programa gera `evidence/validation_50_candidates.csv` (50 registros com possíveis páginas/cabeçalhos) e `evidence/validation_50_source_report.json` (integridade das fontes). Esses arquivos são auxiliares, não substituem a planilha de revisão. **Candidatos não são páginas confirmadas.** Cabeçalhos duplicados e questões do questionário de percepção podem aparecer; a seleção final exige inspeção manual do PDF.
+
+Se a rede impedir o download, obtenha os PDFs oficiais pelas URLs descritas acima e salve-os com os nomes esperados em `data/raw/`. Não substitua por outros materiais.
+
 ## Procedimento para obter dados válidos
 
-1. Obter os PDFs oficiais e armazenar sem versioná-los em `data/raw/2023_PV_enfermagem.pdf` e `data/raw/2023_PV_fisioterapia.pdf`.
+1. Obter os PDFs oficiais (manualmente ou com `python -m scripts.prepare_50_sources --download`) e armazenar sem versioná-los em `data/raw/2023_PV_enfermagem.pdf` e `data/raw/2023_PV_fisioterapia.pdf`.
 2. Copiar `evidence/validation_50_template.csv` para `evidence/validation_50_reviewed.csv` ou gerar novo template com `python -m scripts.validation_50 prepare --output evidence/validation_50_template.csv`.
 3. Executar o extrator existente para os PDFs com `python -m scripts.extract_pdf --help` e guardar os JSONL em `data/output/`. **Não corrigir o JSONL automaticamente antes da avaliação.** O extrator atual recebe uma seção fixa (`--section FG/CE`), pode misturar o questionário de percepção, perder colunas, alternativas e páginas. Esses defeitos são candidatos a erros observáveis e não devem ser encobertos.
 4. Para cada uma das 50 linhas, **localizar a questão no PDF**, registrar a página física e o caminho do JSONL e comparar os seis campos: número, seção, tipo, enunciado, alternativas e páginas. Marcar cada campo como `certo` ou `errado`. Se não houver extração, marcar os campos prejudicados como `errado` e `categoria_erro=nao_extraida`.
