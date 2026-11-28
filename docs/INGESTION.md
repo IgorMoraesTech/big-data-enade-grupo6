@@ -86,7 +86,7 @@ Os arquivos locais não são disponibilizados automaticamente no CI. A aprovaç�
 
 As questões foram selecionadas como candidatas para testar uma busca textual por `ética` entre cursos diferentes. A existência de vocabulário relacionado nos textos não comprova, por si só, que o mecanismo de busca recupera ambas. Essa demonstração depende da execução e do registro de uma consulta real.
 
-As páginas das questões e os gabaritos devem ser conferidos nos PDFs originais. Não se deve alterar o texto das questões para forçar correspondência temática.
+As páginas das duas questões da amostra e suas respectivas respostas foram conferidas nos PDFs originais e nos gabaritos oficiais, conforme os resultados apresentados na seção "Verificação de integridade e gabaritos". Não se deve alterar o texto das questões para forçar correspondência temática.
 
 O extrator heurístico existente não deve ser considerado uma solução de segmentação integral sem avaliação adicional. Questões em colunas, alternativas lado a lado e itens de questionário de percepção podem produzir associações incorretas. A amostra manual não representa uma avaliação de qualidade com 50 questões.
 
