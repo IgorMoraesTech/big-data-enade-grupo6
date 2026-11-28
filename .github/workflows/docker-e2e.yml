@@ -36,6 +36,8 @@ jobs:
         run: docker compose run --rm api python -m scripts.produce sample/real_questions.jsonl
       - name: Validar busca textual entre Enfermagem e Fisioterapia
         run: python scripts/smoke_real_questions.py
+      - name: Medir backlog Kafka, drenagem e vazão de indexação sintética
+        run: python scripts/benchmark_ingestion.py --count 80 --timeout 180 --output evidence/kafka-ingestion-lag.json
       - name: Publicar evidências de teste (resultados de laboratório e amostras transcritas)
         if: success()
         uses: actions/upload-artifact@v4
