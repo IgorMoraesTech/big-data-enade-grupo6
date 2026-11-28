@@ -26,6 +26,18 @@ jobs:
         run: python scripts/smoke_e2e.py
       - name: Validar login LDAP real e resposta 403 do estudante
         run: python scripts/smoke_ldap.py
+      - name: Validar idempotência, reinício e dead-letter queue
+        run: python scripts/smoke_recovery.py
+      - name: Medir latência HTTP p50 p95 p99 e cache real
+        run: |
+          python scripts/benchmark_search.py --query tecnologia --requests 30 --output evidence/benchmark-search.json
+          python scripts/benchmark_search.py --query tecnologia --requests 30 --cache-bust --output evidence/benchmark-no-cache.json
+      - name: Publicar evidências de teste (não são dados oficiais)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-integration-evidence
+          path: evidence/*.json
       - name: Logs para depuração
         if: always()
         run: |
