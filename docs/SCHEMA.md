@@ -44,8 +44,12 @@ inventados para simular enriquecimento real.
   retorna `{total,page,page_size,items,cache_hit}`.
 - `GET /api/stats/courses` agrega questões por curso.
 - `GET /api/stats/competencies` agrega por competência e ano.
-- `POST /api/questions/{id}/cart`, `GET /api/cart`, `DELETE /api/questions/{id}/cart`
-  serão adicionados em outra etapa.
+- `POST /api/questions/{id}/cart`: adiciona à sessão anônima Redis, máximo de 30.
+- `GET /api/cart`: lista da sessão; `DELETE /api/questions/{id}/cart`: remove.
+- `GET /api/cart/export.json` e `GET /api/cart/export.pdf`: exportação pública **sem gabaritos**.
+- Sessão: cookie HttpOnly aleatório, SameSite=Lax, expiração 24h; não é login LDAP.
+- Mudanças de sessão não exigem autenticação real nesta versão de laboratório.
+- Exportações completas com gabaritos/professor exigem LDAP e autorização no backend.
 - `GET /docs`: documentação OpenAPI do FastAPI.
 
 **Aviso:** enquanto não houver LDAP, não há perfis reais nem bloqueio de gabaritos.
