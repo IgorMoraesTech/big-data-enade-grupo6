@@ -1,12 +1,7 @@
 name: Preparar fontes oficiais ENADE 2023
+# Execução manual: o INEP pode recusar conexões de runners externos.
+# Não transformar indisponibilidade da fonte oficial em falha de CI do código.
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "scripts/prepare_50_sources.py"
-      - "scripts/validation_50.py"
-      - "docs/VALIDACAO_50.md"
-      - ".github/workflows/enade-validation-sources.yml"
   workflow_dispatch:
 
 jobs:
