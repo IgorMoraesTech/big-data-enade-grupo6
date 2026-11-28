@@ -49,6 +49,15 @@
         <button type="submit">Buscar</button>
       </form>
       <p class="muted" id="status" aria-live="polite">Pesquise no acervo para ver as questões.</p>
+      <section aria-label="Carrinho" style="border:1px solid #c2cedb;border-radius:8px;padding:12px;margin:14px 0;background:#f8fafc">
+        <strong>Minha seleção: <span id="cartCount">0</span> questão(ões)</strong>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:9px">
+          <button type="button" id="exportPdf">Exportar PDF</button>
+          <button type="button" id="exportJson">Exportar JSON</button>
+          <button type="button" id="showCart">Ver seleção</button>
+        </div>
+        <div id="cartItems" aria-live="polite"></div>
+      </section>
       <div id="results"></div>
       <div class="pager">
         <button id="prev" type="button" disabled>Anterior</button>
@@ -78,7 +87,8 @@
       +'<h3>Questão '+esc(item.number)+' — '+esc(item.question_type)+'</h3>'
       +'<p>'+highlighted(item.statement,item.highlights?.statement)+'</p>'
       +(alternatives ? '<ol style="list-style:none;padding:0">'+alternatives+'</ol>':'')
-      +'<small>'+source+' · Página(s): '+esc((item.source_pages||[]).join(", "))+'</small></article>';
+      +'<small>'+source+' · Página(s): '+esc((item.source_pages||[]).join(", "))+'</small>'
+      +'<p><button type="button" data-add="'+esc(item.id)+'">Adicionar à seleção</button></p></article>';
   }
   async function search(){
     $("status").textContent="Buscando...";
@@ -108,6 +118,41 @@
   $("prev").addEventListener("click",()=>{if(page>1){page--;search()}});
   $("next").addEventListener("click",()=>{if(page<pages){page++;search()}});
   $("clear").addEventListener("click",()=>{for(const f of fields)$(f).value="";page=1;search()});
+  async function refreshCart(show=false){
+    try {
+      const response = await fetch("/api/cart");
+      if(!response.ok) throw Error("Carrinho indisponível");
+      const data = await response.json();
+      $("cartCount").textContent=String(data.count);
+      if(show) $("cartItems").innerHTML=(data.items||[]).map(q=>
+        '<p>'+esc(q.course)+' — questão '+esc(q.number)+' <button type="button" data-remove="'+esc(q.id)+'">Remover</button></p>').join("") || '<p>Nenhuma questão selecionada.</p>';
+    } catch(err) {$("cartItems").textContent=err.message}
+  }
+  $("results").addEventListener("click",async event=>{
+    const button=event.target.closest("button[data-add]");
+    if(!button)return;
+    button.disabled=true;
+    try{
+      const response=await fetch("/api/questions/"+encodeURIComponent(button.dataset.add)+"/cart",{method:"POST"});
+      if(!response.ok) throw Error("Não foi possível adicionar");
+      await refreshCart();
+    }catch(err){$("status").textContent=err.message}
+    finally{button.disabled=false}
+  });
+  $("cartItems").addEventListener("click",async event=>{
+    const button=event.target.closest("button[data-remove]");
+    if(!button)return;
+    button.disabled=true;
+    try{
+      const response=await fetch("/api/questions/"+encodeURIComponent(button.dataset.remove)+"/cart",{method:"DELETE"});
+      if(!response.ok) throw Error("Não foi possível remover");
+      await refreshCart(true);
+    }catch(err){$("cartItems").textContent=err.message}
+  });
+  $("showCart").addEventListener("click",()=>refreshCart(true));
+  $("exportPdf").addEventListener("click",()=>window.location.assign("/api/cart/export.pdf"));
+  $("exportJson").addEventListener("click",()=>window.location.assign("/api/cart/export.json"));
+  refreshCart();
   search();
 </script>
 </body></html>
