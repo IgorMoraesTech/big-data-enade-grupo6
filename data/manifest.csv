@@ -1,9 +1,0 @@
-ano,curso,area,tipo_documento,formato,url_oficial,nome_arquivo,status_link,status_local
-2023,Enfermagem,Saúde,prova,pdf,https://download.inep.gov.br/enade/provas_e_gabaritos/2023_PV_enfermagem.pdf,2023_PV_enfermagem.pdf,disponivel,baixado
-2023,Enfermagem,Saúde,gabarito,pdf,https://download.inep.gov.br/enade/provas_e_gabaritos/2023_GB_enfermagem.pdf,2023_GB_enfermagem.pdf,disponivel,baixado
-2023,Enfermagem,Saúde,padrao_resposta,pdf,https://riep.inep.gov.br/items/ed74a5da-b4ff-4b77-9fcf-ae3a118ebdcb,2023_enfermagem.pdf,disponivel,nao_baixado
-2023,Enfermagem,Saúde,diretriz,html,https://www.in.gov.br/web/dou/-/portaria-n-275-de-26-de-junho-de-2023-492247182,portaria_275_2023_enfermagem.html,disponivel,nao_baixado
-2023,Fisioterapia,Saúde,prova,pdf,https://download.inep.gov.br/enade/provas_e_gabaritos/2023_PV_fisioterapia.pdf,2023_PV_fisioterapia.pdf,disponivel,baixado
-2023,Fisioterapia,Saúde,gabarito,pdf,https://download.inep.gov.br/enade/provas_e_gabaritos/2023_GB_fisioterapia.pdf,2023_GB_fisioterapia.pdf,disponivel,baixado
-2023,Fisioterapia,Saúde,padrao_resposta,pdf,https://riep.inep.gov.br/items/c6cb2190-8861-4547-9c0f-dd39f71bdfba,2023_fisioterapia.pdf,disponivel,baixado
-2023,Fisioterapia,Saúde,diretriz,html,https://riep.inep.gov.br/items/3c5636c9-5840-4104-bc1d-eccdfb735a5d,portaria_287_2023_fisioterapia.html,disponivel,nao_baixado
