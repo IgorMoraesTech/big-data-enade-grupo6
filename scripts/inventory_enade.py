@@ -27,10 +27,10 @@ FIELDS = (
 VALID_LINK_STATUS = {"disponivel", "ausente", "quebrado", "nao_verificado"}
 VALID_LOCAL_STATUS = {"baixado", "nao_baixado", "invalido", "ausente"}
 DOCUMENT_FORMATS = {
-    "prova": "pdf",
-    "gabarito": "pdf",
-    "padrao_resposta": "pdf",
-    "diretriz": "html",
+    "prova": {"pdf"},
+    "gabarito": {"pdf"},
+    "padrao_resposta": {"pdf"},
+    "diretriz": {"html", "pdf"},
 }
 
 
@@ -49,8 +49,8 @@ def load_manifest(path: Path = MANIFEST) -> list[dict[str, str]]:
         if row["status_local"] not in VALID_LOCAL_STATUS:
             raise ValueError(f"Status local inválido na linha {line}")
 
-        expected_format = DOCUMENT_FORMATS.get(row["tipo_documento"])
-        if expected_format is None or row["formato"] != expected_format:
+        expected_formats = DOCUMENT_FORMATS.get(row["tipo_documento"])
+        if expected_formats is None or row["formato"] not in expected_formats:
             raise ValueError(f"Formato inválido na linha {line}")
 
         if not row["ano"].isdigit() or not row["curso"].strip() or not row["area"].strip():
