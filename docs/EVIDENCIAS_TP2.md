@@ -1,6 +1,6 @@
 # Matriz de evidências e pendências — TP2 ENADE
 
-**Data da consolidação: 28/11/2026.** Base: `main` após os PRs #43 (inventário do Álvaro), #44 (correções de URLs) e #45 (teste E2E com questões ENADE). Este documento é apoio ao relatório e à demonstração; não implica conclusão automática das issues.
+**Data da consolidação: 28/11/2026.** Base: `main` após PRs #43–47, incluindo inventário, busca com questões oficiais e ensaio de consumer lag Kafka. Este documento é apoio ao relatório e à demonstração; não implica conclusão automática das issues.
 
 ## Resultados mensurados e rastreáveis
 
@@ -16,8 +16,12 @@
 | Indexação idempotente | Documentos antes=1; depois=1 | `scripts/smoke_recovery.py` | Reentrega da mesma questão fictícia |
 | Recuperação após parada do indexer | Passou | `scripts/smoke_recovery.py` | Reinício de processo; não HA |
 | DLQ e continuidade do consumidor | Passou | `scripts/smoke_recovery.py` | Payload inválido demonstrativo |
+| Consumer lag Kafka com indexador parado | 0 → 80 mensagens pendentes → 0 depois do reinício | [Actions #46115937123](https://github.com/IgorMoraesTech/big-data-enade-grupo6/actions/runs/46115937123); `scripts/benchmark_ingestion.py` | Lote de 80 mensagens sintéticas |
+| Indexação observada na recuperação | 80/80 documentos indexados em 6,332 s; **12,634 docs/s** | [Actions #46115937123](https://github.com/IgorMoraesTech/big-data-enade-grupo6/actions/runs/46115937123); artifact `docker-integration-evidence` | Inclui tempo de reinício do container, polling e verificação ES; não é capacidade máxima nem extração de PDF |
 | Benchmark cache repetido | 30 sucessos; 29 hits; p50=1,512 ms; p95=2,699 ms; p99=11,452 ms; 377,009 req/s | `scripts/benchmark_search.py` | 30 consultas HTTP sequenciais no runner |
 | Benchmark sem reutilização | 30 sucessos; 0 hits; p50=9,359 ms; p95=11,859 ms; p99=17,041 ms; 96,237 req/s | `scripts/benchmark_search.py --cache-bust` | Termo de pesquisa muda a cada requisição |
+
+**Nota sobre ingestão:** o benchmark de 80 registros usa documentos **sintéticos**, tempo desde o reinício do consumidor até a drenagem total e visibilidade de todos os registros no Elasticsearch. A taxa 12,634 docs/s é derivada de 80 / 6,332 s, **não** é throughput máximo em regime permanente. É uma execução isolada no runner do CI; o lote não testa extração ou cobertura de provas oficiais.
 
 **Atenção metodológica:** `--cache-bust` altera a string pesquisada acrescentando `0..29`; os cenários não consultam dados idênticos, então as diferenças não são exclusivamente atribuíveis ao cache. `requests_per_second` é taxa de respostas HTTP, **não é docs/s de indexação**. Latências p99 estimadas com 30 amostras são instáveis.
 
@@ -35,13 +39,13 @@
 | Questões reais em JSONL | **Integradas no PR #43** | 2 questões em `sample/real_questions.jsonl`; busca, filtros e ocultação de respostas confirmados pelo PR #45 no CI |
 | Extração de PDF em escala | Heurística experimental | Colunas e mídia complexa não resolvidas |
 | Avaliação de qualidade de 50 questões | **Pendente** | Necessário medir campos e erros |
-| Kafka lag e vazão docs/s | **Pendente** | Não confundir com HTTP req/s |
+| Kafka lag e vazão docs/s | **Medição inicial integrada no PR #47** | CI: 80 mensagens sintéticas, lag 80→0 e 12,634 docs/s na recuperação; falta medição com corpus oficial e repetições |
 | Relatório SBC e vídeo | Em produção | PDF de até 12 páginas e vídeo de até 5 minutos ainda não concluídos |
 
 ## Ações de fechamento
 
 1. Acervo: preservar a autoria do Álvaro no [PR #43](https://github.com/IgorMoraesTech/big-data-enade-grupo6/pull/43); URLs oficiais corrigidas no [PR #44](https://github.com/IgorMoraesTech/big-data-enade-grupo6/pull/44). Ampliar extração e avaliar 50 questões separadamente.
 2. Busca real: o CI do [PR #45](https://github.com/IgorMoraesTech/big-data-enade-grupo6/pull/45) já demonstrou Kafka→Elasticsearch para duas questões. Para reproduzir localmente após `git pull origin main` e os serviços Docker iniciarem, executar `docker compose run --rm api python -m scripts.produce sample/real_questions.jsonl`, aguardar o indexador e pesquisar `ética` na interface.
-3. Engenharia: obter `docs/s` e lag Kafka com prova reproduzível, ou registrar impossibilidade e justificar no relatório.
+3. Engenharia: ensaio inicial de lag e vazão sintética concluído no [PR #47](https://github.com/IgorMoraesTech/big-data-enade-grupo6/pull/47). Repetir com múltiplos tamanhos de lote e dados oficiais quando disponíveis, sem apresentar o resultado de laboratório como capacidade máxima.
 4. Segurança: registrar claramente Kerberos pendente; não tratar LDAP como substituto.
 5. Coordenação: preencher autoria/divisão de tarefas e declaração de IA; converter rascunho em PDF SBC, revisar e gravar vídeo final.
