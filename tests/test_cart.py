@@ -57,7 +57,7 @@ def test_not_found(monkeypatch):
 
 def test_cookie_is_random(monkeypatch):
     client = make_client(monkeypatch)
-    client.cookies.set(cart.COOKIE, "invalid")
+    client.cookies.set(cart.COOKIE, "invalid", domain="testserver.local", path="/")
     client.get("/api/cart")
     assert len(client.cookies[cart.COOKIE]) == 64
 
