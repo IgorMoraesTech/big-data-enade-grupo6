@@ -30,6 +30,19 @@ def test_manifest_contains_two_real_courses_and_official_documents():
     assert {row["formato"] for row in rows} == {"pdf", "html"}
     assert all(row["url_oficial"].startswith("https://") for row in rows)
 
+    # URLs do acervo RIEP devem baixar o arquivo, não retornar página do catálogo.
+    riep = [row for row in rows if "riep.inep.gov.br" in row["url_oficial"]]
+    assert len(riep) == 3
+    assert all("/bitstreams/" in row["url_oficial"] for row in riep)
+    assert all(row["url_oficial"].endswith("/download") for row in riep)
+
+    diretriz_fisio = next(
+        row for row in rows
+        if row["curso"] == "Fisioterapia" and row["tipo_documento"] == "diretriz"
+    )
+    assert diretriz_fisio["formato"] == "pdf"
+    assert diretriz_fisio["nome_arquivo"].endswith(".pdf")
+
 
 def test_summary_distinguishes_link_download_and_processing(tmp_path):
     rows = [
