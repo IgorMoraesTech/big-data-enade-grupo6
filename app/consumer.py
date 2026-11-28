@@ -13,6 +13,8 @@ from elasticsearch import Elasticsearch
 from pydantic import ValidationError
 
 from app import config
+from app.search import get_redis
+from redis.exceptions import RedisError
 from app.schema import Question
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -28,6 +30,13 @@ def stop(_sig, _frame):
 def index_one(es: Elasticsearch, raw: bytes):
     question = Question.model_validate_json(raw)
     es.index(index=config.ELASTICSEARCH_INDEX, id=question.id, document=question.model_dump())
+    # Invalidação por versão: não usar KEYS/FLUSHDB, que seriam perigosos.
+    # Se Redis estiver temporariamente indisponível, o TTL do cache limita
+    # a janela de inconsistência (padrão: 60 segundos).
+    try:
+        get_redis().incr("enade:index:version")
+    except RedisError as exc:
+        log.warning("Invalidação Redis indisponível, TTL permanece ativo: %s", exc)
     return question.id
 
 
