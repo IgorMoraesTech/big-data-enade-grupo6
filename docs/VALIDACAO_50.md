@@ -32,7 +32,12 @@ Se a rede impedir o download, obtenha os PDFs oficiais pelas URLs descritas acim
 
 1. Obter os PDFs oficiais (manualmente ou com `python -m scripts.prepare_50_sources --download`) e armazenar sem versioná-los em `data/raw/2023_PV_enfermagem.pdf` e `data/raw/2023_PV_fisioterapia.pdf`.
 2. Copiar `evidence/validation_50_template.csv` para `evidence/validation_50_reviewed.csv` ou gerar novo template com `python -m scripts.validation_50 prepare --output evidence/validation_50_template.csv`.
-3. Executar o extrator existente para os PDFs com `python -m scripts.extract_pdf --help` e guardar os JSONL em `data/output/`. **Não corrigir o JSONL automaticamente antes da avaliação.** O extrator atual recebe uma seção fixa (`--section FG/CE`), pode misturar o questionário de percepção, perder colunas, alternativas e páginas. Esses defeitos são candidatos a erros observáveis e não devem ser encobertos.
+3. Executar o extrator com `--section auto` para as provas completas de 2023 (FG: 01–09, CE: 10–38), e guardar os JSONL em `data/output/`. **Não corrigir o JSONL automaticamente antes da avaliação.** O extrator reconhece alternativas A–E com ou sem pontuação e interrompe a análise quando encontra o título do questionário de percepção, mas ainda pode perder itens por layout, colunas, imagens, quebras ou cabeçalhos não reconhecidos. Esses erros devem permanecer visíveis na avaliação.
+
+   ```bash
+   python -m scripts.extract_pdf --pdf data/raw/2023_PV_enfermagem.pdf --year 2023 --course Enfermagem --area Saúde --section auto --source-url https://download.inep.gov.br/enade/provas_e_gabaritos/2023_PV_enfermagem.pdf --output data/output/2023_enfermagem.jsonl
+   python -m scripts.extract_pdf --pdf data/raw/2023_PV_fisioterapia.pdf --year 2023 --course Fisioterapia --area Saúde --section auto --source-url https://download.inep.gov.br/enade/provas_e_gabaritos/2023_PV_fisioterapia.pdf --output data/output/2023_fisioterapia.jsonl
+   ```
 4. Para cada uma das 50 linhas, **localizar a questão no PDF**, registrar a página física e o caminho do JSONL e comparar os seis campos: número, seção, tipo, enunciado, alternativas e páginas. Marcar cada campo como `certo` ou `errado`. Se não houver extração, marcar os campos prejudicados como `errado` e `categoria_erro=nao_extraida`.
 5. Informar revisor, `data_revisao` no padrão `AAAA-MM-DD`, observações, categoria de erro quando aplicável e `status_revisao=verificado` **somente depois da comparação humana real**.
 6. Gerar o resultado com `python -m scripts.validation_50 report --input evidence/validation_50_reviewed.csv --output evidence/validation_50_results.json`. O script rejeita 50 itens incompletos, duplicados, sem revisor/data/páginas, ou sem marcação de cada campo.
