@@ -6,7 +6,7 @@
   <title>Acervo ENADE | Grupo 6</title>
   <style>
     :root{font-family:system-ui,-apple-system,sans-serif;color:#14263a;background:#f2f5fa}
-    *{box-sizing:border-box}body{margin:0}header{background:#14263a;color:white;padding:1.25rem max(1rem,calc((100% - 1050px)/2))}
+    *{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}header{background:#14263a;color:white;padding:1.25rem max(1rem,calc((100% - 1050px)/2))}
     .wrap{max-width:1050px;margin:2rem auto;padding:0 1rem}
     h1{font-size:1.5rem;margin:.3rem 0}h2{font-size:1.1rem}p{line-height:1.6}
     .muted{color:#576579}.note{background:#fff3d5;border-left:4px solid #b17e16;padding:.9rem;border-radius:6px}
@@ -18,6 +18,21 @@
     .question{padding:1.1rem 0;border-bottom:1px solid #e3e9ef}.question h3{margin:.3rem 0;font-size:1.05rem}
     .tag{font-size:.74rem;background:#e7f2fb;border-radius:10px;padding:.2rem .5rem;margin-right:.35rem}
     .pager{display:flex;align-items:center;justify-content:space-between;margin-top:1rem}
+    .auth-panel{background:#fff;border:1px solid #cbd6e1;border-radius:12px;padding:1rem 1.2rem;margin-bottom:1rem;box-shadow:0 3px 16px #14263a10}
+    .auth-layout{display:flex;flex-wrap:wrap;align-items:end;gap:1rem}
+    .auth-field{flex:1 1 170px;min-width:0}
+    .auth-field input{margin-bottom:0}
+    .auth-panel h2{margin:.1rem 0 .7rem}
+    .auth-actions{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+    .auth-message{font-size:.89rem;margin:.75rem 0 0;min-height:1.3rem}
+    .auth-message.error{color:#a12d28}
+    .auth-message.success{color:#146b40}
+    .auth-info{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}
+    .auth-pill{font-size:.85rem;font-weight:700;background:#e7f2fb;padding:.35rem .75rem;border-radius:18px}
+    .role-panel{margin-top:.8rem;padding:.8rem;background:#f5f8fc;border:1px solid #dce5ef;border-radius:8px}
+    .role-panel h3{font-size:.95rem;margin:.1rem 0 .5rem}
+    .secondary{background:#4a627c}
+    .role-panel button{margin-right:.4rem;margin-bottom:.35rem}
     mark{background:#ffe5a0}a{color:#1265a7;word-break:break-word}
     @media(max-width:700px){.layout{grid-template-columns:1fr}.searchbar{display:block}.searchbar button{margin-top:.5rem;width:100%}}
   </style>
@@ -29,7 +44,26 @@
   <span>Pesquisa por texto, ano, curso e área</span>
 </header>
 <div class="wrap">
-  <p class="note"><strong>Protótipo acadêmico.</strong> Integração LDAP/Kerberos e perfis ainda pendentes. O exemplo de demonstração é fictício e não representa uma questão real do INEP. Gabaritos não são disponibilizados nesta interface.</p>
+  <p class="note"><strong>Protótipo acadêmico.</strong> Login LDAP de laboratório e controle de acesso por perfil disponíveis no backend. Kerberos ainda não implementado. Use somente no ambiente privado do Codespaces. A questão de teste inicial é fictícia; gabaritos não são mostrados na busca pública.</p>
+  <section class="auth-panel" aria-label="Autenticação LDAP">
+    <h2>Entrar no sistema <span class="muted" style="font-size:.75rem;font-weight:400">(ambiente de demonstração)</span></h2>
+    <form id="loginForm" class="auth-layout">
+      <div class="auth-field"><label for="loginUser">Usuário</label><input id="loginUser" autocomplete="username" maxlength="48" required placeholder="estudante ou professor"></div>
+      <div class="auth-field"><label for="loginPass">Senha</label><input id="loginPass" type="password" autocomplete="current-password" maxlength="256" required placeholder="Senha de demonstração"></div>
+      <div class="auth-actions"><button id="loginSubmit" type="submit">Entrar</button></div>
+    </form>
+    <div id="authLogged" hidden>
+      <div class="auth-info"><span class="auth-pill" id="authIdentity"></span><button id="logout" type="button" class="secondary">Sair da conta</button></div>
+      <div class="role-panel">
+        <h3>Área de acesso por perfil</h3>
+        <p class="muted" style="margin:.3rem 0">A consulta abaixo é protegida no servidor. Um estudante recebe HTTP 403; um professor autorizado pode visualizar as estatísticas.</p>
+        <button type="button" id="checkRole">Testar acesso a estatísticas do professor</button>
+        <div id="roleResult" aria-live="polite"></div>
+      </div>
+    </div>
+    <p class="auth-message muted" id="authMessage" role="status" aria-live="polite">A busca pública funciona sem login.</p>
+    <small class="muted">Contas de laboratório: estudante / demo123 e professor / demo123. Não utilize senhas pessoais.</small>
+  </section>
   <div class="layout">
     <aside>
       <h2>Filtros</h2>
@@ -152,6 +186,103 @@
   $("showCart").addEventListener("click",()=>refreshCart(true));
   $("exportPdf").addEventListener("click",()=>window.location.assign("/api/cart/export.pdf"));
   $("exportJson").addEventListener("click",()=>window.location.assign("/api/cart/export.json"));
+  // A autorização é imposta pela API, nunca apenas pela visibilidade dos controles.
+  // O navegador não armazena senhas ou tokens em localStorage/sessionStorage.
+  function showAuth(user){
+    const logged=!!user;
+    $("loginForm").hidden=logged;
+    $("authLogged").hidden=!logged;
+    $("roleResult").textContent="";
+    if(logged){
+      $("authIdentity").textContent=user.username+" — "+(user.role==="professor"?"Professor":"Estudante");
+      $("authMessage").textContent="Autenticado no OpenLDAP de demonstração.";
+      $("authMessage").className="auth-message success";
+    }else{
+      $("loginPass").value="";
+      $("authMessage").textContent="A busca pública funciona sem login.";
+      $("authMessage").className="auth-message muted";
+    }
+  }
+  async function fetchAuth(){
+    try{
+      const response=await fetch("/api/auth/me",{credentials:"same-origin",cache:"no-store"});
+      if(response.status===401){showAuth(null);return}
+      if(!response.ok)throw Error("HTTP "+response.status);
+      showAuth(await response.json());
+    }catch(err){
+      showAuth(null);
+      $("authMessage").textContent="Não foi possível verificar a sessão: "+err.message;
+      $("authMessage").className="auth-message error";
+    }
+  }
+  $("loginForm").addEventListener("submit",async event=>{
+    event.preventDefault();
+    $("loginSubmit").disabled=true;
+    $("authMessage").textContent="Autenticando...";
+    $("authMessage").className="auth-message muted";
+    const username=$("loginUser").value.trim(),password=$("loginPass").value;
+    try{
+      const response=await fetch("/api/auth/login",{
+        method:"POST",credentials:"same-origin",cache:"no-store",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({username,password})
+      });
+      $("loginPass").value="";
+      if(!response.ok){
+        if(response.status===401)throw Error("Usuário ou senha inválidos (HTTP 401).");
+        if(response.status===403)throw Error("Usuário sem perfil autorizado (HTTP 403).");
+        throw Error("Falha na autenticação (HTTP "+response.status+").");
+      }
+      const data=await response.json();
+      showAuth(data);
+    }catch(err){
+      $("loginPass").value="";
+      $("authMessage").textContent=err.message;
+      $("authMessage").className="auth-message error";
+    }finally{$("loginSubmit").disabled=false}
+  });
+  $("logout").addEventListener("click",async ()=>{
+    $("logout").disabled=true;
+    try{
+      const response=await fetch("/api/auth/logout",{method:"POST",credentials:"same-origin",cache:"no-store"});
+      if(!response.ok)throw Error("HTTP "+response.status);
+      showAuth(null);
+      $("authMessage").textContent="Sessão encerrada. Você pode continuar pesquisando sem login.";
+    }catch(err){
+      $("authMessage").textContent="Falha ao sair: "+err.message;
+      $("authMessage").className="auth-message error";
+    }finally{$("logout").disabled=false}
+  });
+  $("checkRole").addEventListener("click",async ()=>{
+    $("checkRole").disabled=true;
+    $("roleResult").textContent="Consultando API...";
+    try{
+      const response=await fetch("/api/professor/stats/courses",{credentials:"same-origin",cache:"no-store"});
+      if(response.status===403){
+        $("roleResult").textContent="HTTP 403 — Acesso negado: esta função é exclusiva do professor.";
+      }else if(response.status===401){
+        $("roleResult").textContent="HTTP 401 — Faça login para acessar esta função.";
+        await fetchAuth();
+      }else if(response.ok){
+        const data=await response.json();
+        const entries=Array.isArray(data.items)?data.items:[];
+        $("roleResult").textContent="HTTP 200 — Acesso autorizado ao professor. "+entries.length+" curso(s) no índice.";
+        if(entries.length){
+          const listing=document.createElement("ul");
+          entries.forEach(item=>{
+            const li=document.createElement("li");
+            li.textContent=String(item.course)+" — "+String(item.count)+" questão(ões)";
+            listing.appendChild(li);
+          });
+          $("roleResult").appendChild(listing);
+        }
+      }else{
+        $("roleResult").textContent="HTTP "+response.status+" — Não foi possível consultar as estatísticas.";
+      }
+    }catch(err){$("roleResult").textContent="Falha na consulta: "+err.message}
+    finally{$("checkRole").disabled=false}
+  });
+  fetchAuth();
   refreshCart();
   search();
 </script>

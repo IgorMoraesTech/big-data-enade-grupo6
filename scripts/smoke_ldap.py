@@ -20,6 +20,15 @@ def login_retry(client, username, password, timeout=75):
 
 def main():
     with httpx.Client(timeout=15) as client:
+        front = client.get(BASE + "/")
+        assert front.status_code == 200
+        assert 'id="loginForm"' in front.text, "Formulário LDAP visual ausente"
+        assert 'id="checkRole"' in front.text, "Demonstração HTTP 403 ausente"
+        assert 'id="logout"' in front.text, "Logout visual ausente"
+        assert "/api/auth/login" in front.text
+        assert "/api/auth/me" in front.text
+        assert "/api/professor/stats/courses" in front.text
+        assert "Kerberos ainda não implementado" in front.text
         assert client.get(BASE + "/api/professor/questions/sample-didatico-01/answer").status_code == 401
         invalid = login_retry(client, "estudante", "senha-errada")
         assert invalid.status_code == 401, f"Credencial inválida: {invalid.status_code} {invalid.text}"
@@ -38,7 +47,7 @@ def main():
         assert answer.status_code == 200, f"LDAP professor answer: {answer.status_code} {answer.text}"
         assert "answer" in answer.json()
         assert client.get(BASE + "/api/professor/stats/courses").status_code == 200
-        print("LDAP OpenLDAP REAL: login + 401/403 + professor: OK")
+        print("LDAP OpenLDAP REAL + interface de login: login + 401/403 + professor: OK")
 
 
 if __name__ == "__main__":
