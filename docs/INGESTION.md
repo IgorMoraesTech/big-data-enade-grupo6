@@ -39,6 +39,8 @@ Os valores de `status_local` são:
 
 A URL do documento é preservada, sem substituição pelo endereço da página de catálogo. A coluna `nome_arquivo` define o nome local esperado, mas, isoladamente, não comprova que o download ocorreu.
 
+Nos itens do Repositório Institucional do INEP (RIEP), `url_oficial` aponta para o **download direto do PDF** (endereço `/bitstreams/.../download`), não para a página HTML `/items/...`. A Portaria nº 287/2023 de Fisioterapia é distribuída nesse repositório como **PDF**, com nome local `portaria_287_2023_fisioterapia.pdf`. Diretrizes podem ser distribuídas como HTML ou PDF; o campo `formato` deve refletir o arquivo real.
+
 ## Contagem e estado observado (28/11/2026)
 
 O inventário local identificou oito documentos no manifesto. Cinco PDFs estão presentes em `data/raw/`: prova e gabarito de Enfermagem 2023, prova, gabarito e padrão de resposta de Fisioterapia 2023.
@@ -124,10 +126,10 @@ O contador `processados` verifica a existência dos arquivos JSONL esperados em 
 - [Gabarito de Enfermagem 2023](https://download.inep.gov.br/enade/provas_e_gabaritos/2023_GB_enfermagem.pdf).
 - [Prova de Fisioterapia 2023](https://download.inep.gov.br/enade/provas_e_gabaritos/2023_PV_fisioterapia.pdf).
 - [Gabarito de Fisioterapia 2023](https://download.inep.gov.br/enade/provas_e_gabaritos/2023_GB_fisioterapia.pdf).
-- [Padrão de resposta de Fisioterapia 2023](https://riep.inep.gov.br/items/c6cb2190-8861-4547-9c0f-dd39f71bdfba).
+- [Padrão de resposta de Fisioterapia 2023 (PDF)](https://riep.inep.gov.br/bitstreams/d4b82b3d-f1f5-4a66-99ff-fd5cfee5bd45/download).
 - [Portaria INEP nº 275/2023 — Enfermagem](https://www.in.gov.br/web/dou/-/portaria-n-275-de-26-de-junho-de-2023-492247182).
-- [Portaria INEP nº 287/2023 — Fisioterapia](https://riep.inep.gov.br/items/3c5636c9-5840-4104-bc1d-eccdfb735a5d).
-- [Padrão de resposta de Enfermagem 2023](https://riep.inep.gov.br/items/ed74a5da-b4ff-4b77-9fcf-ae3a118ebdcb).
+- [Portaria INEP nº 287/2023 — Fisioterapia (PDF)](https://riep.inep.gov.br/bitstreams/97432eb4-616e-4a7c-b5cd-0fc693fa1c76/download).
+- [Padrão de resposta de Enfermagem 2023 (PDF)](https://riep.inep.gov.br/bitstreams/f7b687b4-2997-4a72-b8a2-82bd476e0dac/download).
 
 ### Verificação de integridade e gabaritos
 
