@@ -9,3 +9,7 @@ KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
 KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "enade-questions")
 KAFKA_DLQ_TOPIC = os.getenv("KAFKA_DLQ_TOPIC", "enade-questions-dlq")
 KAFKA_GROUP_ID = os.getenv("KAFKA_GROUP_ID", "enade-indexer")
+
+# Laboratório LDAP; use LDAPS e segredos fora do Compose em produção.
+LDAP_URL = os.getenv("LDAP_URL", "ldap://ldap:389")
+LDAP_PEOPLE_DN = os.getenv("LDAP_PEOPLE_DN", "ou=people,dc=enade,dc=local")
