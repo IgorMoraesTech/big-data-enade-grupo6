@@ -18,7 +18,7 @@ def test_manifest_contains_two_real_courses_and_official_documents():
 
     assert len(rows) == 8
     assert {row["curso"] for row in rows} == {
-        "Sistemas de Informação",
+        "Fisioterapia",
         "Enfermagem",
     }
     assert {row["tipo_documento"] for row in rows} == {

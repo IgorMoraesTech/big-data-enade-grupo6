@@ -1,9 +1,9 @@
 ano,curso,area,tipo_documento,formato,url_oficial,nome_arquivo,status_link,status_local
-2021,Sistemas de Informação,Computação e Tecnologias da Informação,prova,pdf,https://download.inep.gov.br/enade/provas_e_gabaritos/2021_PV_bacharelado_sistema_informacao.pdf,2021_PV_bacharelado_sistema_informacao.pdf,nao_verificado,baixado
-2021,Sistemas de Informação,Computação e Tecnologias da Informação,gabarito,pdf,https://download.inep.gov.br/enade/provas_e_gabaritos/2021_GB_bacharelado_sistema_informacao.pdf,2021_GB_bacharelado_sistema_informacao.pdf,nao_verificado,baixado
-2021,Sistemas de Informação,Computação e Tecnologias da Informação,padrao_resposta,pdf,https://download.inep.gov.br/enade/padrao_resposta/2021_bacharelado_sistema_de_informacao.pdf,2021_padrao_resposta_sistemas_informacao.pdf,nao_verificado,nao_baixado
-2021,Sistemas de Informação,Computação e Tecnologias da Informação,diretriz,html,https://www.in.gov.br/en/web/dou/-/portaria-n-387-de-23-de-agosto-de-2021-340149469,portaria_387_2021_sistemas_informacao.html,quebrado,nao_baixado
-2023,Enfermagem,Saúde,prova,pdf,https://download.inep.gov.br/enade/provas_e_gabaritos/2023_PV_enfermagem.pdf,2023_PV_enfermagem.pdf,nao_verificado,baixado
-2023,Enfermagem,Saúde,gabarito,pdf,https://download.inep.gov.br/enade/provas_e_gabaritos/2023_GB_enfermagem.pdf,2023_GB_enfermagem.pdf,nao_verificado,baixado
-2023,Enfermagem,Saúde,padrao_resposta,pdf,https://download.inep.gov.br/enade/padrao_resposta/2023_enfermagem.pdf,2023_padrao_resposta_enfermagem.pdf,nao_verificado,nao_baixado
-2023,Enfermagem,Saúde,diretriz,html,https://www.in.gov.br/web/dou/-/portaria-n-275-de-26-de-junho-de-2023-492247182,portaria_275_2023_enfermagem.html,quebrado,nao_baixado
+2023,Enfermagem,Saúde,prova,pdf,https://download.inep.gov.br/enade/provas_e_gabaritos/2023_PV_enfermagem.pdf,2023_PV_enfermagem.pdf,disponivel,baixado
+2023,Enfermagem,Saúde,gabarito,pdf,https://download.inep.gov.br/enade/provas_e_gabaritos/2023_GB_enfermagem.pdf,2023_GB_enfermagem.pdf,disponivel,baixado
+2023,Enfermagem,Saúde,padrao_resposta,pdf,https://riep.inep.gov.br/items/ed74a5da-b4ff-4b77-9fcf-ae3a118ebdcb,2023_enfermagem.pdf,disponivel,nao_baixado
+2023,Enfermagem,Saúde,diretriz,html,https://www.in.gov.br/web/dou/-/portaria-n-275-de-26-de-junho-de-2023-492247182,portaria_275_2023_enfermagem.html,disponivel,nao_baixado
+2023,Fisioterapia,Saúde,prova,pdf,https://download.inep.gov.br/enade/provas_e_gabaritos/2023_PV_fisioterapia.pdf,2023_PV_fisioterapia.pdf,disponivel,baixado
+2023,Fisioterapia,Saúde,gabarito,pdf,https://download.inep.gov.br/enade/provas_e_gabaritos/2023_GB_fisioterapia.pdf,2023_GB_fisioterapia.pdf,disponivel,baixado
+2023,Fisioterapia,Saúde,padrao_resposta,pdf,https://riep.inep.gov.br/items/c6cb2190-8861-4547-9c0f-dd39f71bdfba,2023_fisioterapia.pdf,disponivel,baixado
+2023,Fisioterapia,Saúde,diretriz,html,https://riep.inep.gov.br/items/3c5636c9-5840-4104-bc1d-eccdfb735a5d,portaria_287_2023_fisioterapia.html,disponivel,nao_baixado

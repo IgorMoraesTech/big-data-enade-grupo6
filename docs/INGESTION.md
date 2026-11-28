@@ -1,70 +1,94 @@
 # Acervo oficial ENADE: inventário e ingestão
 
-## Recorte inicial
+## Recorte atual
 
-O manifesto `data/manifest.csv` contém dois cursos de áreas distintas:
+O manifesto `data/manifest.csv` contém dois cursos da área da Saúde, ambos da edição 2023:
 
-- Sistemas de Informação (bacharelado), edição 2021.
-- Enfermagem (bacharelado), edição 2023.
+- Enfermagem.
+- Fisioterapia.
 
-Para cada curso foram catalogados prova, gabarito definitivo, padrão de resposta discursiva e portaria de diretrizes. O recorte serve para iniciar a ingestão e demonstrar pesquisa interdisciplinar; não representa o acervo histórico completo.
+Para cada curso foram catalogados quatro documentos: prova, gabarito definitivo, padrão de resposta discursiva e diretriz de prova. O recorte permite iniciar a ingestão e testar a recuperação de questões entre cursos, mas não representa o acervo histórico completo do ENADE.
 
 ## Manifesto
 
-Colunas: `ano,curso,area,tipo_documento,url_oficial,nome_arquivo,status`.
+O manifesto possui nove colunas:
+
+| Coluna | Descrição |
+|---|---|
+| `ano` | Edição do ENADE. |
+| `curso` | Nome do curso avaliado. |
+| `area` | Área de conhecimento do curso. |
+| `tipo_documento` | Tipo de documento: `prova`, `gabarito`, `padrao_resposta` ou `diretriz`. |
+| `formato` | Formato esperado do documento, como `pdf` ou `html`. |
+| `url_oficial` | URL do documento na fonte oficial. |
+| `nome_arquivo` | Nome local esperado para o documento. |
+| `status_link` | Estado da última verificação da URL oficial. |
+| `status_local` | Estado de presença e validação do arquivo no ambiente local. |
+
+Os valores de `status_link` são:
 
 - `disponivel`: URL respondeu com HTTP 2xx/3xx na última checagem.
 - `ausente`: documento esperado não foi localizado na página oficial; URL e nome ficam vazios.
 - `quebrado`: servidor respondeu HTTP 404 ou 410.
-- `nao_verificado`: link listado por fonte oficial, mas ainda não confirmado por resposta HTTP conclusiva (inclui timeout, erro de rede e HTTP 5xx).
+- `nao_verificado`: link listado por fonte oficial, mas ainda não confirmado por resposta HTTP conclusiva, incluindo timeout, erro de rede e HTTP 5xx.
 
-A URL do documento é preservada, sem substituir pelo endereço da página de catálogo. As páginas de catálogo do INEP estão listadas nas fontes abaixo. A coluna `nome_arquivo` define o nome local esperado, não comprova que o download ocorreu.
+Os valores de `status_local` são:
+
+- `baixado`: arquivo presente no diretório local e aprovado pelas verificações locais executadas.
+- `nao_baixado`: arquivo não encontrado no diretório local esperado.
+
+A URL do documento é preservada, sem substituição pelo endereço da página de catálogo. A coluna `nome_arquivo` define o nome local esperado, mas, isoladamente, não comprova que o download ocorreu.
 
 ## Contagem e estado observado (28/11/2026)
 
-Foram recebidos e validados localmente quatro PDFs oficiais, dois por curso:
-provas e gabaritos definitivos de Sistemas de Informação (2021) e Enfermagem
-(2023). Os quatro arquivos ficam em `data/raw/`, ignorado pelo Git.
+O inventário local identificou oito documentos no manifesto. Cinco PDFs estão presentes em `data/raw/`: prova e gabarito de Enfermagem 2023, prova, gabarito e padrão de resposta de Fisioterapia 2023.
 
-- Documentos identificados no manifesto: 8.
-- Arquivos PDF obtidos e validados localmente: 4.
-- Provas com extração manual de ao menos uma questão revisada: 2.
-- Questões reais revisadas e validadas pelo schema: 2 (uma por curso).
-- Diretrizes e padrões de resposta: 4 registros ainda não obtidos localmente.
-- URLs não foram submetidas a nova checagem HTTP neste ambiente; o recebimento
-  dos PDFs confirma a disponibilidade dos arquivos, não uma resposta HTTP atual.
+Os arquivos locais ficam em `data/raw/`, diretório ignorado pelo Git, e não são versionados no repositório.
 
-Os PDFs foram conferidos quanto à assinatura `%PDF`, páginas e identificação
-visual/textual do ENADE/INEP. SHA-256 dos arquivos recebidos:
+Resultado observado de `python -m scripts.inventory_enade`:
 
-| Arquivo | Bytes | SHA-256 |
-|---|---:|---|
-| `2021_PV_bacharelado_sistema_informacao.pdf` | 6.921.221 | `13d81a46488d93fb66836e7c704f9de1ba722c3b130ccb4f0aa9d3522c855ba7` |
-| `2021_GB_bacharelado_sistema_informacao.pdf` | 522.400 | `aba7bbc12f549710bf0553ed2ac642423de22076418ff9ff06c810cd86092d85` |
-| `2023_PV_enfermagem.pdf` | 9.117.323 | `41d267263ed395bda17ac07543fe54cb2a76dfbbdb3777f0da3d1a057176d0cc` |
-| `2023_GB_enfermagem.pdf` | 177.471 | `74a39b14cc72ee9456da68849b37071018ae14a50d1e6b444b076dc1e1f43793` |
+- Documentos identificados: 8.
+- Links disponíveis: 8.
+- Links ausentes: 0.
+- Links quebrados: 0.
+- Links não verificados: 0.
+- Arquivos baixados: 5.
+- Documentos não baixados: 3.
+- Arquivos inválidos: 0.
+- Documentos processados: 0.
+
+Os três documentos ainda não obtidos localmente são o padrão de resposta de Enfermagem 2023, a diretriz de Enfermagem 2023 e a diretriz de Fisioterapia 2023.
+
+O resultado do inventário representa o estado observado no ambiente local. A classificação de links disponíveis corresponde ao estado registrado no manifesto e não deve ser interpretada como uma nova checagem HTTP realizada durante cada execução do inventário.
+
+### Arquivos locais
+
+Os cinco PDFs presentes em `data/raw/` são:
+
+| Arquivo | Curso | Documento |
+|---|---|---|
+| `2023_PV_enfermagem.pdf` | Enfermagem | Prova |
+| `2023_GB_enfermagem.pdf` | Enfermagem | Gabarito definitivo |
+| `2023_PV_fisioterapia.pdf` | Fisioterapia | Prova |
+| `2023_GB_fisioterapia.pdf` | Fisioterapia | Gabarito definitivo |
+| `2023_fisioterapia.pdf` | Fisioterapia | Padrão de resposta |
+
+Os arquivos de Sistemas de Informação 2021 ainda podem existir localmente em `data/raw/`, mas não fazem parte do recorte atual nem dos oito registros do manifesto.
+
+Os arquivos locais não são disponibilizados automaticamente no CI. A aprovação dos testes de CI não comprova que os PDFs locais foram enviados ou examinados pelo ambiente de integração contínua.
 
 ### Amostra real revisada
 
-`sample/real_questions.jsonl` contém duas questões objetivas, uma de cada curso,
-com `source_pdf`, página física, ID determinístico e gabarito definitivo:
+`sample/real_questions.jsonl` contém duas questões objetivas, uma de cada curso:
 
-- Sistemas de Informação 2021, questão 12, página física 19, gabarito B.
-  Aborda confidencialidade e permissões de acesso a dados.
-- Enfermagem 2023, questão 15, página física 18, gabarito A.
-  Aborda autonomia da paciente e princípios éticos/bioéticos.
+- Fisioterapia 2023, questão 04, página física 6, gabarito A. Aborda inteligência artificial generativa e menciona questões éticas.
+- Enfermagem 2023, questão 15, página física 18, gabarito A. Aborda autonomia da paciente e princípios éticos/bioéticos.
 
-As páginas foram confrontadas manualmente com os PDFs recebidos. A amostra
-permite demonstrar busca interdisciplinar por ética, autonomia e proteção de
-informações, sem afirmar equivalência conceitual perfeita entre as questões.
-Os arquivos JSONL individuais estão em `data/output/` (ignorado pelo Git).
+As questões foram selecionadas como candidatas para testar uma busca textual por `ética` entre cursos diferentes. A existência de vocabulário relacionado nos textos não comprova, por si só, que o mecanismo de busca recupera ambas. Essa demonstração depende da execução e do registro de uma consulta real.
 
-O extrator heurístico existente foi executado experimentalmente, mas sua
-segmentação não foi considerada confiável para publicação: alternativas em
-colunas e questões lado a lado podem ser associadas incorretamente, e ele pode
-capturar itens do questionário de percepção. Por isso, as duas questões da
-amostra foram transcritas/revisadas a partir das páginas originais e validadas
-com `Question.model_validate_json`; não se declara extração automática integral.
+As páginas das questões e os gabaritos devem ser conferidos nos PDFs originais. Não se deve alterar o texto das questões para forçar correspondência temática.
+
+O extrator heurístico existente não deve ser considerado uma solução de segmentação integral sem avaliação adicional. Questões em colunas, alternativas lado a lado e itens de questionário de percepção podem produzir associações incorretas. A amostra manual não representa uma avaliação de qualidade com 50 questões.
 
 ## Execução
 
@@ -74,22 +98,33 @@ Na raiz do repositório:
 python -m pip install -r requirements.txt
 python -m scripts.inventory_enade
 python -m scripts.inventory_enade --check-links
+python -m scripts.inventory_enade --check-local
 python -m pytest -q tests/test_inventory_enade.py
 ```
 
-Os arquivos baixados devem ficar em `data/raw/` e os artefatos efetivamente processados em `data/processed/`. Ambos são locais de trabalho e não devem ser versionados como PDFs grandes. O resumo diferencia identificados, disponíveis, ausentes, quebrados, não verificados, baixados e processados.
+Os PDFs locais devem ficar em `data/raw/`. Os artefatos efetivamente processados ficam em `data/output/`. Esses diretórios são locais de trabalho e não devem ser versionados como PDFs grandes ou saídas geradas.
 
-## Fontes oficiais verificadas no catálogo do INEP
+O resumo do inventário diferencia documentos identificados, links disponíveis, ausentes, quebrados e não verificados, arquivos baixados e documentos processados. A presença de um arquivo local não altera, por si só, o estado da URL oficial.
 
-- [ENADE — Provas e Gabaritos 2021](https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enade/provas-e-gabaritos/2021): lista Sistemas de Informação (bacharelado), prova, gabarito e padrão de resposta.
-- [ENADE — Provas e Gabaritos 2023](https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enade/provas-e-gabaritos/2023): lista Enfermagem, prova, gabarito e padrão de resposta.
-- [Legislação ENADE 2021](https://www.gov.br/inep/pt-br/centrais-de-conteudo/legislacao/enade/2021): lista Portaria nº 387/2021 para Sistemas de Informação.
-- [Legislação ENADE 2023](https://www.gov.br/inep/pt-br/centrais-de-conteudo/legislacao/enade/2023): lista Portaria nº 275/2023 para Enfermagem.
+O contador `processados` verifica a existência dos arquivos JSONL esperados em `data/output/`. Essa contagem não valida, por si só, a qualidade ou a completude do conteúdo extraído.
 
-## Tema transversal para demonstração
+## Limitações e próximos passos
 
-Há base documental para uma demonstração temática inicial sobre ética/bioética: a Portaria nº 386/2021 define “Ética, democracia e cidadania” como tema de Formação Geral; a Portaria nº 275/2023 inclui “Bioética e dilemas éticos” entre os objetos de conhecimento de Enfermagem. A prova de Enfermagem 2023 contém questão de componente específico sobre autonomia e princípios bioéticos. A busca interdisciplinar deverá usar questões efetivamente extraídas dos PDFs e não somente as diretrizes. Ainda é necessário revisar a prova de Sistemas de Informação para selecionar uma questão real equivalente antes de afirmar que a demonstração está pronta.
+- O recorte contempla somente dois cursos da edição 2023; não representa o universo completo do acervo ENADE.
+- Três documentos do manifesto ainda não foram obtidos localmente.
+- A extração automática integral e a publicação de todas as questões ainda precisam ser implementadas e validadas.
+- A amostra atual possui duas questões revisadas e não substitui a avaliação manual de pelo menos 50 questões exigida para medir a qualidade da extração.
+- A busca interdisciplinar entre Fisioterapia e Enfermagem ainda precisa ser demonstrada com uma consulta real no mecanismo de busca.
+- O inventário não comprova que os documentos já foram processados, publicados no Kafka ou indexados no Elasticsearch.
 
-## Limitações
+## Fontes oficiais
 
-O recorte contempla uma edição de cada curso, não todas as edições disponíveis. As URLs foram obtidas nas páginas oficiais do INEP; por falha de DNS no ambiente desta execução, o download binário e a confirmação HTTP não puderam ser realizados aqui. Não afirmar que os PDFs foram baixados, processados ou que o acervo está completo. A próxima etapa operacional é baixar os seis PDFs/documentos de prova, gabarito e padrão de resposta, validar assinatura `%PDF` e SHA-256, depois extrair e revisar questões reais.
+- [ENADE — Provas e Gabaritos 2023](https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enade/provas-e-gabaritos/2023).
+- [Prova de Enfermagem 2023](https://download.inep.gov.br/enade/provas_e_gabaritos/2023_PV_enfermagem.pdf).
+- [Gabarito de Enfermagem 2023](https://download.inep.gov.br/enade/provas_e_gabaritos/2023_GB_enfermagem.pdf).
+- [Prova de Fisioterapia 2023](https://download.inep.gov.br/enade/provas_e_gabaritos/2023_PV_fisioterapia.pdf).
+- [Gabarito de Fisioterapia 2023](https://download.inep.gov.br/enade/provas_e_gabaritos/2023_GB_fisioterapia.pdf).
+- [Padrão de resposta de Fisioterapia 2023](https://riep.inep.gov.br/items/c6cb2190-8861-4547-9c0f-dd39f71bdfba).
+- [Portaria INEP nº 275/2023 — Enfermagem](https://www.in.gov.br/web/dou/-/portaria-n-275-de-26-de-junho-de-2023-492247182).
+- [Portaria INEP nº 287/2023 — Fisioterapia](https://riep.inep.gov.br/items/3c5636c9-5840-4104-bc1d-eccdfb735a5d).
+- [Padrão de resposta de Enfermagem 2023](https://riep.inep.gov.br/items/ed74a5da-b4ff-4b77-9fcf-ae3a118ebdcb).
