@@ -6,7 +6,7 @@ Projeto acadêmico de processamento e pesquisa de questões do ENADE. **Protóti
 
 PDF oficial → Python → JSON → Kafka → Elasticsearch → API FastAPI/Redis → Interface web.
 
-O enunciado também exige LDAP e Kerberos: **ainda não estão implementados**.
+O projeto inclui **login LDAP de laboratório** com estudantes e professores e proteção 403, mas **Kerberos SASL/GSSAPI ainda não está implementado**. As credenciais demonstrativas não são adequadas a produção.
 A configuração local usa Kafka PLAINTEXT e Elasticsearch sem segurança, portanto
 **não deve ser exposta à internet**.
 
@@ -65,6 +65,27 @@ python -m scripts.extract_pdf --pdf prova.pdf --year 2023 --course "Sistemas de 
 O extrator é heurístico, depende da diagramação e **não resolve** OCR,
 gabaritos ou fórmulas complexas. Revise manualmente todos os registros antes
 de publicar com `python -m scripts.produce data/output/questoes.jsonl`.
+
+## Login LDAP no ambiente de demonstração
+
+O Compose inclui um servidor OpenLDAP interno (sem exposição da porta 389 na máquina).
+Essas credenciais são **somente demonstrativas** e não devem ser reutilizadas:
+
+- Estudante: `estudante` / `demo123`
+- Professor: `professor` / `demo123`
+
+Pelo Swagger em `http://localhost:8000/docs`, use `POST /api/auth/login`
+com `{"username":"estudante","password":"demo123"}` e, na mesma sessão
+de navegador, acesse `GET /api/professor/stats/courses`: recebe **403**.
+Sem login, recebe **401**. Login com `professor` permite consulta de
+`GET /api/professor/questions/{question_id}/answer` e painel de cursos.
+O navegador mantém a sessão em cookie HttpOnly por até uma hora.
+`POST /api/auth/logout` encerra a sessão.
+
+**Atenção:** o laboratório LDAP usa rede Compose sem TLS, apenas para
+demonstração local; não o exponha à rede pública. Proteção Kerberos do
+Kafka/Elasticsearch permanece pendente, assim como endurecimento
+de segurança necessário para produção.
 
 ## Testes unitários
 
