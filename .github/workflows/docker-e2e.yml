@@ -32,7 +32,11 @@ jobs:
         run: |
           python scripts/benchmark_search.py --query tecnologia --requests 30 --output evidence/benchmark-search.json
           python scripts/benchmark_search.py --query tecnologia --requests 30 --cache-bust --output evidence/benchmark-no-cache.json
-      - name: Publicar evidências de teste (não são dados oficiais)
+      - name: Publicar duas questões do recorte ENADE via Kafka
+        run: docker compose run --rm api python -m scripts.produce sample/real_questions.jsonl
+      - name: Validar busca textual entre Enfermagem e Fisioterapia
+        run: python scripts/smoke_real_questions.py
+      - name: Publicar evidências de teste (resultados de laboratório e amostras transcritas)
         if: success()
         uses: actions/upload-artifact@v4
         with:
