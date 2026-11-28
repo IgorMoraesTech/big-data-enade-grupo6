@@ -1,61 +1,97 @@
-"""Extração textual exploratória de provas ENADE.
+"""Extrator heurístico de questões OBJETIVAS ENADE: resultados não auditados.
 
-ATENÇÃO: PDFs variam muito. Este script trata padrões simples de "QUESTÃO N"
-e NÃO garante extração multimodal, classificação completa ou cobertura integral.
-Revisar cada questão antes de publicar.
-Uso: python -m scripts.extract_pdf --pdf caminho.pdf --year 2023
-     --course "Sistemas de Informação" --area "Tecnologia" --section CE
-     --source-url https://.../prova.pdf --output data/output/questoes.jsonl
+Usar --section auto para classificar FG (01-09) e CE (10-38).
+Exige alternativas A-E completas; não infere respostas, imagens ou qualidade.
 """
 import argparse
+import bisect
 import json
 import re
 from pathlib import Path
 
 import fitz
-
 from app.schema import Question, stable_question_id
 
-QUESTION_PATTERN = re.compile(r"(?im)^\s*QUEST[ÃA]O\s+(\d{1,3})\b")
-ALTERNATIVE_PATTERN = re.compile(r"(?m)^\s*([A-E])\s*[)\.]\s+(.+?)(?=^\s*[A-E]\s*[)\.]|\Z)", re.S)
+QUESTION_PATTERN = re.compile(r"(?im)^[ \t]*QUEST[ÃA]O[ \t]+0?(\d{1,3})\b")
+SURVEY_PATTERN = re.compile(
+    r"(?im)^[ \t]*QUESTION[ÁA]RIO[ \t]+(?:DE[ \t]+PERCEP[ÇC][ÃA]O|DO[ \t]+ESTUDANTE)\b"
+)
+ALTERNATIVE_LINE = re.compile(r"^[ \t]*([A-E])(?:[).]|[ \t]+)(.*)$")
+LETTER_ONLY_LINE = re.compile(r"^[ \t]*([A-E])[ \t]*$")
 
 
-def extract(pdf: str, source_url: str, year: int, course: str, area: str, section: str):
+def split_alternatives(block: str) -> tuple[str, dict[str, str]]:
+    """Identifica A-E nas formas 'A)', 'A.' ou 'A texto'.
+
+    Se não houver sequência completa, não classificar como objetiva extraída.
+    """
+    lines = block.splitlines()
+    markers = []
+    for index, line in enumerate(lines):
+        match = ALTERNATIVE_LINE.match(line)
+        if match:
+            markers.append((index, match.group(1), match.group(2).strip()))
+        else:
+            match = LETTER_ONLY_LINE.match(line)
+            if match:
+                markers.append((index, match.group(1), ""))
+    for start in range(len(markers)):
+        sequence = markers[start:start + 5]
+        if len(sequence) < 5 or [entry[1] for entry in sequence] != list("ABCDE"):
+            continue
+        answers = {}
+        for i, (line_index, letter, first) in enumerate(sequence):
+            next_line = sequence[i + 1][0] if i < 4 else len(lines)
+            answer = "\n".join(([first] if first else []) + lines[line_index + 1:next_line]).strip()
+            if not answer:
+                break
+            answers[letter] = answer
+        statement = "\n".join(lines[:sequence[0][0]]).strip()
+        if len(answers) == 5 and statement:
+            return statement, answers
+    return block.strip(), {}
+
+
+def extract(pdf: str, source_url: str, year: int, course: str,
+            area: str, section: str = "auto"):
+    if section not in ("auto", "FG", "CE"):
+        raise ValueError("Seção deve ser auto, FG ou CE")
     pages = []
     with fitz.open(pdf) as doc:
         for i, page in enumerate(doc):
             pages.append((i + 1, page.get_text(sort=True)))
-    all_text = "\n".join(text for _num, text in pages)
-    matches = list(QUESTION_PATTERN.finditer(all_text))
+    if not pages:
+        return []
+    offsets = []
+    length = 0
+    for _page, text in pages:
+        offsets.append(length)
+        length += len(text) + 1
+    text = "\n".join(page_text for _num, page_text in pages)
+    survey = SURVEY_PATTERN.search(text)
+    if survey:
+        text = text[:survey.start()]
+    matches = [m for m in QUESTION_PATTERN.finditer(text) if 1 <= int(m.group(1)) <= 38]
     results = []
-    for i, match in enumerate(matches):
-        end = matches[i + 1].start() if i + 1 < len(matches) else len(all_text)
-        start = match.end()
-        block = all_text[start:end].strip()
+    for index, match in enumerate(matches):
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
+        block = text[match.end():end].strip()
         if not block:
             continue
         number = int(match.group(1))
-        alternatives = {key: text.strip() for key, text in ALTERNATIVE_PATTERN.findall(block)}
-        statement = ALTERNATIVE_PATTERN.split(block)[0].strip() if alternatives else block
-        # A posição no texto concatenado determina a página inicial da questão.
-        prefix_length = 0
-        page_start = 1
-        page_end = 1
-        for page_num, text in pages:
-            length = len(text) + 1
-            if prefix_length <= match.start() < prefix_length + length:
-                page_start = page_num
-            if prefix_length <= end - 1 < prefix_length + length:
-                page_end = page_num
-            prefix_length += length
+        question_section = ("FG" if number <= 9 else "CE") if section == "auto" else section
+        statement, alternatives = split_alternatives(block)
+        if len(alternatives) != 5:
+            continue  # Não inventar classificação discursiva para bloco incompleto.
+        start_page = pages[bisect.bisect_right(offsets, match.start()) - 1][0]
+        end_page = pages[bisect.bisect_right(offsets, max(match.end(), end - 1)) - 1][0]
         results.append(Question(
-            id=stable_question_id(source_url, year, course, section, number),
-            year=year, area=area, course=course, section=section, number=number,
-            question_type="objective" if alternatives else "discursive",
-            statement=statement, context=None, alternatives=alternatives,
-            answer=None, annulled=False, competencies=[], knowledge_objects=[],
-            source_pdf=source_url,
-            source_pages=list(range(page_start, max(page_start, page_end) + 1)),
+            id=stable_question_id(source_url, year, course, question_section, number),
+            year=year, area=area, course=course, section=question_section, number=number,
+            question_type="objective", statement=statement, context=None,
+            alternatives=alternatives, answer=None, annulled=False,
+            competencies=[], knowledge_objects=[], source_pdf=source_url,
+            source_pages=list(range(start_page, end_page + 1)),
         ))
     return results
 
@@ -66,16 +102,16 @@ def main():
     parser.add_argument("--year", required=True, type=int)
     parser.add_argument("--course", required=True)
     parser.add_argument("--area", required=True)
-    parser.add_argument("--section", required=True, choices=["FG", "CE"])
+    parser.add_argument("--section", default="auto", choices=["auto", "FG", "CE"])
     parser.add_argument("--source-url", required=True)
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     questions = extract(args.pdf, args.source_url, args.year, args.course, args.area, args.section)
     out = Path(args.output)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text("".join(json.dumps(x.model_dump(), ensure_ascii=False) + "\n" for x in questions),
-                   encoding="utf-8")
-    print(f"Extraídas {len(questions)} questões (REVISÃO MANUAL OBRIGATÓRIA) para {out}")
+    out.write_text("".join(json.dumps(q.model_dump(), ensure_ascii=False) + "\n"
+                           for q in questions), encoding="utf-8")
+    print(f"Extraídos {len(questions)} candidatos objetivos; revisão manual obrigatória: {out}")
 
 
 if __name__ == "__main__":
