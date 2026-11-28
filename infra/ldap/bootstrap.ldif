@@ -1,0 +1,19 @@
+dn: ou=people,dc=enade,dc=local
+objectClass: organizationalUnit
+ou: people
+
+dn: uid=estudante,ou=people,dc=enade,dc=local
+objectClass: inetOrgPerson
+cn: Estudante Demo
+sn: Demo
+uid: estudante
+userPassword: demo123
+employeeType: estudante
+
+dn: uid=professor,ou=people,dc=enade,dc=local
+objectClass: inetOrgPerson
+cn: Professor Demo
+sn: Demo
+uid: professor
+userPassword: demo123
+employeeType: professor

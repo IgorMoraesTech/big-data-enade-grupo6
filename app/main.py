@@ -8,13 +8,15 @@ from redis.exceptions import RedisError
 
 from app import config
 from app.cart import router as cart_router
+from app.auth import router as auth_router
 from app.search import cache_key, get_elastic, get_redis, query_questions, search_body
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 app = FastAPI(title="ENADE | Busca de Questões", version="0.1.0",
-              description="Protótipo acadêmico. Autenticação LDAP e Kerberos pendentes.")
+              description="Protótipo acadêmico. LDAP de laboratório; Kerberos pendente.")
 app.include_router(cart_router)
+app.include_router(auth_router)
 
 
 @app.get("/", include_in_schema=False)
