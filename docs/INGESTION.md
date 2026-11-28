@@ -128,3 +128,26 @@ O contador `processados` verifica a existência dos arquivos JSONL esperados em 
 - [Portaria INEP nº 275/2023 — Enfermagem](https://www.in.gov.br/web/dou/-/portaria-n-275-de-26-de-junho-de-2023-492247182).
 - [Portaria INEP nº 287/2023 — Fisioterapia](https://riep.inep.gov.br/items/3c5636c9-5840-4104-bc1d-eccdfb735a5d).
 - [Padrão de resposta de Enfermagem 2023](https://riep.inep.gov.br/items/ed74a5da-b4ff-4b77-9fcf-ae3a118ebdcb).
+
+### Verificação de integridade e gabaritos
+
+Os cinco PDFs classificados como baixados no recorte ENADE 2023 de Enfermagem e Fisioterapia foram verificados localmente. Os hashes SHA-256 foram recalculados e coincidiram com os valores registrados durante a conferência.
+
+| Arquivo | Tamanho (bytes) | SHA-256 |
+|---|---:|---|
+| `2023_PV_enfermagem.pdf` | 9117323 | `41d267263ed395bda17ac07543fe54cb2a76dfbbdb3777f0da3d1a057176d0cc` |
+| `2023_GB_enfermagem.pdf` | 177471 | `74a39b14cc72ee9456da68849b37071018ae14a50d1e6b444b076dc1e1f43793` |
+| `2023_PV_fisioterapia.pdf` | 8932646 | `de34c0f531379814a7bb771041d430327756962af152cd71bf7336dffd3f3ec4` |
+| `2023_GB_fisioterapia.pdf` | 178658 | `cb1f83ca8a6d77aea19ad592ceb406fad7e66a85aa90171ea4767852da1cec99` |
+| `2023_fisioterapia.pdf` | 335552 | `a2214a6d237c787bd7825f0921133d70fabca55c2a5b814f44177048faf03e32` |
+
+Os gabaritos oficiais foram conferidos com as provas originais e com as respostas registradas na amostra JSONL:
+
+| Curso | Questão | Página da prova | Resposta oficial | Resposta JSONL |
+|---|---:|---:|---|---|
+| Enfermagem 2023 | 15 | 18 | A | A |
+| Fisioterapia 2023 | 4 | 6 | A | A |
+
+As duas respostas da amostra coincidem com os respectivos gabaritos oficiais. Os PDFs permanecem fora do versionamento Git.
+
+As verificações de integridade e dos gabaritos foram realizadas localmente. A CI não verifica a presença nem a integridade desses arquivos, pois os PDFs não são versionados no repositório.
