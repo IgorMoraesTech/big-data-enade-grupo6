@@ -74,6 +74,13 @@ Essas credenciais são **somente demonstrativas** e não devem ser reutilizadas:
 - Estudante: `estudante` / `demo123`
 - Professor: `professor` / `demo123`
 
+**Login pela interface web:** abra `http://localhost:8000`. No painel "Entrar no sistema" informe as credenciais de demonstração. O perfil autenticado aparece no topo e o botão **Testar acesso a estatísticas do professor** chama a rota real `GET /api/professor/stats/courses`:
+- com estudante, o backend retorna **HTTP 403**, mostrado na tela;
+- com professor, retorna **HTTP 200** e a contagem de questões por curso;
+- sem login, a rota protegida retorna **HTTP 401**.
+
+Use **Sair da conta** para encerrar a sessão no servidor. A busca pública, o carrinho e as exportações não exigem autenticação nesta versão. O formulário não armazena senha nem token no armazenamento do navegador; a sessão usa cookie HttpOnly. **Este login é apenas para um laboratório privado**, sem TLS no serviço LDAP; não publicar Codespaces/serviços publicamente.
+
 Pelo Swagger em `http://localhost:8000/docs`, use `POST /api/auth/login`
 com `{"username":"estudante","password":"demo123"}` e, na mesma sessão
 de navegador, acesse `GET /api/professor/stats/courses`: recebe **403**.
@@ -96,8 +103,11 @@ python -m pytest -q
 
 ## Estado e escopo
 
-Este código ainda precisa de validação Docker ponta a ponta e das evidências
-exigidas na avaliação. Não afirmar que RF01 (acervo integral), RF04
-(conversão de mídias), RF22–RF25 (LDAP/Kerberos/perfis) ou as metas
-não funcionais foram cumpridas por esta base. Relatório e vídeo devem
-mostrar somente comportamento observado, incluindo limitações.
+A integração Docker ponta a ponta com dados fictícios, a recuperação Kafka,
+o login OpenLDAP com HTTP 403 e o cache Redis já possuem testes automatizados.
+Os relatórios desses testes estão em GitHub Actions e em `docs/EVIDENCIAS_TP2.md`.
+O corpus ENADE oficial, a avaliação manual de 50 questões, a vazão de ingestão,
+o lag Kafka, Kerberos e o PDF/vídeo finais ainda não estão concluídos.
+Não afirmar que RF01 (acervo integral), RF04 (conversão complexa de mídias),
+RF22 (Kerberos) ou as metas não funcionais foram integralmente cumpridos.
+Relatório e vídeo devem mostrar somente comportamento observado e limitações.
