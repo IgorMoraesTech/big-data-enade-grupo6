@@ -40,7 +40,11 @@ def test_add_remove_export_and_pdf(monkeypatch):
     assert response.status_code == 201
     assert response.json()["count"] == 1
     assert client.post("/api/questions/q1/cart").json()["count"] == 1
-    questions = client.get("/api/cart/export.json").json()["questions"]
+    json_response = client.get("/api/cart/export.json")
+    assert json_response.status_code == 200
+    assert json_response.headers["content-disposition"] == 'attachment; filename="questoes-enade.json"'
+    assert json_response.headers["cache-control"] == "no-store"
+    questions = json_response.json()["questions"]
     assert len(questions) == 1
     assert "answer" not in questions[0]
     pdf = client.get("/api/cart/export.pdf")

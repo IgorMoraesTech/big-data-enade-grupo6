@@ -111,7 +111,10 @@ def remove(question_id: str, request: Request, response: Response):
 
 @router.get("/cart/export.json")
 def json_export(request: Request, response: Response):
-    return {"questions": get_items(get_ids(session(request, response)))}
+    questions = get_items(get_ids(session(request, response)))
+    response.headers["Content-Disposition"] = 'attachment; filename="questoes-enade.json"'
+    response.headers["Cache-Control"] = "no-store"
+    return {"questions": questions}
 
 
 def render_pdf(items: list[dict]) -> bytes:
